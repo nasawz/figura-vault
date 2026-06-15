@@ -1,11 +1,14 @@
 import { useState, useMemo, useCallback, useEffect } from "react"
+import { toast } from "sonner"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { GalleryPage } from "@/pages/GalleryPage"
 import { FigureDetailDialog } from "@/components/figures/FigureDetailDialog"
 import { ImportFigureDialog } from "@/components/figures/ImportFigureDialog"
+import { Toaster } from "@/components/ui/sonner"
 import type { ViewMode } from "@/pages/GalleryPage"
 import type { FigureItem, Album, Tag } from "@/types/figure"
-import { getAllFigures, toggleFavorite as dbToggleFavorite } from "@/lib/figure"
+import { getAllFigures, toggleFavorite as dbToggleFavorite, deleteFigure } from "@/lib/figure"
+import { cleanupFigureImages } from "@/lib/file"
 import { getAllAlbums } from "@/lib/album"
 import { getAllTags } from "@/lib/tag"
 import { seedIfEmpty } from "@/lib/seed"
@@ -57,9 +60,29 @@ function App() {
           f.id === figureId ? { ...f, isFavorite: newState } : f
         )
       )
+      setSelectedFigure((prev) =>
+        prev?.id === figureId ? { ...prev, isFavorite: newState } : prev
+      )
     } catch (e) {
       console.error("Failed to toggle favorite:", e)
     }
+  }, [])
+
+  const handleDeleteFigure = useCallback(async (figureId: string) => {
+    await deleteFigure(figureId)
+
+    try {
+      await cleanupFigureImages(figureId)
+    } catch (e) {
+      console.error("Failed to cleanup images:", e)
+      toast.warning("图片文件清理失败", {
+        description: "数据库记录已删除，但图片目录可能残留，请手动清理。",
+      })
+    }
+
+    setSelectedFigure(null)
+    setFigures((prev) => prev.filter((f) => f.id !== figureId))
+    toast.success("收藏项已删除")
   }, [])
 
   const topBarTitle = useMemo(() => {
@@ -104,45 +127,49 @@ function App() {
   }
 
   return (
-    <AppLayout
-      figures={figures}
-      albums={albums}
-      tags={tags}
-      viewMode={viewMode}
-      selectedAlbumId={selectedAlbumId}
-      selectedTagId={selectedTagId}
-      topBarTitle={topBarTitle}
-      onViewModeChange={setViewMode}
-      onAlbumSelect={setSelectedAlbumId}
-      onTagSelect={setSelectedTagId}
-      onImportClick={() => setIsImportOpen(true)}
-    >
-      <GalleryPage
+    <>
+      <AppLayout
         figures={figures}
-        searchQuery={searchQuery}
+        albums={albums}
+        tags={tags}
         viewMode={viewMode}
         selectedAlbumId={selectedAlbumId}
         selectedTagId={selectedTagId}
-        onSearchChange={setSearchQuery}
-        onOpenFigure={setSelectedFigure}
+        topBarTitle={topBarTitle}
+        onViewModeChange={setViewMode}
+        onAlbumSelect={setSelectedAlbumId}
+        onTagSelect={setSelectedTagId}
         onImportClick={() => setIsImportOpen(true)}
-      />
+      >
+        <GalleryPage
+          figures={figures}
+          searchQuery={searchQuery}
+          viewMode={viewMode}
+          selectedAlbumId={selectedAlbumId}
+          selectedTagId={selectedTagId}
+          onSearchChange={setSearchQuery}
+          onOpenFigure={setSelectedFigure}
+          onImportClick={() => setIsImportOpen(true)}
+        />
 
-      <FigureDetailDialog
-        figure={selectedFigure ? figures.find((f) => f.id === selectedFigure.id) ?? selectedFigure : null}
-        open={selectedFigure !== null}
-        onOpenChange={(open) => { if (!open) setSelectedFigure(null) }}
-        onToggleFavorite={toggleFavorite}
-      />
+        <FigureDetailDialog
+          figure={selectedFigure ? figures.find((f) => f.id === selectedFigure.id) ?? selectedFigure : null}
+          open={selectedFigure !== null}
+          onOpenChange={(open) => { if (!open) setSelectedFigure(null) }}
+          onToggleFavorite={toggleFavorite}
+          onDeleteFigure={handleDeleteFigure}
+        />
 
-      <ImportFigureDialog
-        open={isImportOpen}
-        onOpenChange={setIsImportOpen}
-        albums={albums}
-        tags={tags}
-        onImported={loadData}
-      />
-    </AppLayout>
+        <ImportFigureDialog
+          open={isImportOpen}
+          onOpenChange={setIsImportOpen}
+          albums={albums}
+          tags={tags}
+          onImported={loadData}
+        />
+      </AppLayout>
+      <Toaster />
+    </>
   )
 }
 

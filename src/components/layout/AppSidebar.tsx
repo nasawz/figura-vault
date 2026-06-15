@@ -18,8 +18,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
-  SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { startWindowDrag } from "@/lib/window-drag"
 
 const albums = [
   { id: "1", name: "猫咪系列", count: 12 },
@@ -39,17 +39,13 @@ const tags = [
 
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="offcanvas">
       <SidebarHeader
-        data-tauri-drag-region
-        className="space-y-0 pt-[38px] pb-1 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:pt-[38px]"
-      >
-        <div className="flex items-center justify-end px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-          <SidebarTrigger className="size-7 shrink-0" />
-        </div>
-      </SidebarHeader>
+        className="relative h-10 space-y-0 p-0"
+        onMouseDown={startWindowDrag}
+      />
 
-      <SidebarContent>
+      <SidebarContent className="px-2 pt-0">
         {/* 收藏管理 */}
         <SidebarGroup>
           <SidebarGroupLabel>收藏管理</SidebarGroupLabel>
@@ -116,7 +112,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="px-4 pb-4">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton>

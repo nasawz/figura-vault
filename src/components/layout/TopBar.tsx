@@ -1,21 +1,39 @@
 import { Plus, LayoutGrid } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useSidebar } from "@/components/ui/sidebar"
+import { cn } from "@/lib/utils"
+import { startWindowDrag } from "@/lib/window-drag"
 
 export function TopBar() {
-  return (
-    <header className="flex shrink-0 flex-col border-b">
-      {/* macOS titlebar drag region */}
-      <div data-tauri-drag-region className="h-[38px] shrink-0" />
-      <div className="flex h-10 items-center gap-2 px-4 pb-2">
-        <h1 className="text-lg font-semibold">全部收藏</h1>
+  const { state } = useSidebar()
 
-        <div className="ml-auto flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="size-8">
-            <LayoutGrid className="size-4" />
+  return (
+    <header
+      className="flex h-8 shrink-0 items-center border-b bg-background"
+      onMouseDown={startWindowDrag}
+    >
+      <div
+        className={cn(
+          "flex h-full w-full items-center gap-2 pr-3 transition-[padding] duration-200 ease-linear",
+          state === "collapsed" ? "pl-[116px]" : "pl-4"
+        )}
+      >
+        <h1 className="flex h-full items-center text-sm font-medium tracking-normal text-foreground/85">
+          全部收藏
+        </h1>
+
+        <div className="min-w-3 flex-1 self-stretch" />
+
+        <div className="flex items-center gap-1.5">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-6 rounded-md text-muted-foreground hover:text-foreground [&_svg]:size-3.5"
+          >
+            <LayoutGrid />
           </Button>
-          <Button size="sm">
-            <Plus className="size-4" />
-            导入图片
+          <Button size="icon" className="size-6 rounded-md">
+            <Plus className="size-3.5" />
           </Button>
         </div>
       </div>

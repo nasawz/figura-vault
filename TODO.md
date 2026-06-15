@@ -129,48 +129,49 @@
 
 ### 3.1 插件安装与配置
 
-- [ ] P3-1 安装 Tauri SQL 插件（`@tauri-apps/plugin-sql`）
-- [ ] P3-2 在 `tauri.conf.json` 中注册 SQL 插件权限
-- [ ] P3-3 配置 SQLite 数据库文件路径（AppData 目录下 `app.db`）
+- [x] P3-1 安装 Tauri SQL 插件（`@tauri-apps/plugin-sql`）
+- [x] P3-2 在 `tauri.conf.json` 中注册 SQL 插件权限
+- [x] P3-3 配置 SQLite 数据库文件路径（AppData 目录下 `app.db`）
 
 ### 3.2 数据库初始化
 
-- [ ] P3-4 编写数据库初始化 SQL：创建 `figures` 表
-- [ ] P3-5 编写数据库初始化 SQL：创建 `figure_images` 表（含外键级联删除）
-- [ ] P3-6 编写数据库初始化 SQL：创建 `albums` 表
-- [ ] P3-7 编写数据库初始化 SQL：创建 `tags` 表
-- [ ] P3-8 编写数据库初始化 SQL：创建 `figure_tags` 关系表（含外键级联删除）
-- [ ] P3-9 实现数据库初始化/迁移逻辑（应用启动时自动执行建表）
+- [x] P3-4 编写数据库初始化 SQL：创建 `figures` 表
+- [x] P3-5 编写数据库初始化 SQL：创建 `figure_images` 表（含外键级联删除）
+- [x] P3-6 编写数据库初始化 SQL：创建 `albums` 表
+- [x] P3-7 编写数据库初始化 SQL：创建 `tags` 表
+- [x] P3-8 编写数据库初始化 SQL：创建 `figure_tags` 关系表（含外键级联删除）
+- [x] P3-9 实现数据库初始化/迁移逻辑（应用启动时自动执行建表）
 
 ### 3.3 数据访问层封装
 
-- [ ] P3-10 封装 `src/lib/db.ts`：获取数据库连接、执行查询的基础工具函数
-- [ ] P3-11 封装 `src/lib/figure.ts`：收藏项 CRUD
+- [x] P3-10 封装 `src/lib/db.ts`：获取数据库连接、执行查询的基础工具函数
+- [x] P3-11 封装 `src/lib/figure.ts`：收藏项 CRUD
   - `getAllFigures()` — 查询全部收藏项（含图片和标签）
   - `getFigureById(id)` — 查询单个收藏项详情
   - `getFiguresByAlbum(albumId)` — 按相册查询
   - `getFiguresByTag(tagId)` — 按标签查询
   - `getFavorites()` — 查询星标收藏
-- [ ] P3-12 实现 `createFigure(data)` — 创建收藏项（写入 figures + figure_images + figure_tags）
-- [ ] P3-13 实现 `deleteFigure(id)` — 删除收藏项（级联删除图片记录和标签关联）
-- [ ] P3-14 实现 `toggleFavorite(id)` — 切换星标状态
-- [ ] P3-15 封装 `src/lib/album.ts`：相册 CRUD
+- [x] P3-12 实现 `createFigure(data)` — 创建收藏项（写入 figures + figure_images + figure_tags）
+- [x] P3-13 实现 `deleteFigure(id)` — 删除收藏项（级联删除图片记录和标签关联）
+- [x] P3-14 实现 `toggleFavorite(id)` — 切换星标状态
+- [x] P3-15 封装 `src/lib/album.ts`：相册 CRUD
   - `getAllAlbums()` — 查询所有相册
   - `createAlbum(name, description?)` — 创建相册
-- [ ] P3-16 封装 `src/lib/tag.ts`：标签 CRUD
+- [x] P3-16 封装 `src/lib/tag.ts`：标签 CRUD
   - `getAllTags()` — 查询所有标签
   - `createTag(name)` — 创建标签
   - `getOrCreateTag(name)` — 查找或创建标签
 
 ### 3.4 前端数据层切换
 
-- [ ] P3-17 将 GalleryPage 的数据源从 Mock 切换为数据库查询
-- [ ] P3-18 将侧边栏相册/标签列表从 Mock 切换为数据库查询
-- [ ] P3-19 星标操作改为调用 `toggleFavorite` 并刷新列表
+- [x] P3-17 将 GalleryPage 的数据源从 Mock 切换为数据库查询
+- [x] P3-18 将侧边栏相册/标签列表从 Mock 切换为数据库查询
+- [x] P3-19 星标操作改为调用 `toggleFavorite` 并刷新列表
 
 ### 验收
 
-- [ ] P3-AC 确认：启动时数据库自动初始化、CRUD 正常工作、星标可持久化、重启后数据仍在
+- [x] P3-AC 确认：启动时数据库自动初始化、CRUD 正常工作、星标可持久化、重启后数据仍在
+  - 注：开发种子数据（seed）通过 `src/lib/seed.ts` 在数据库为空时自动写入，Phase 4/发布前决定是否保留 seed
 
 ---
 

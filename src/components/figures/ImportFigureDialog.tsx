@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ImagePlus, X } from "lucide-react"
+import { ImagePlus, X, Loader2 } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -20,12 +20,21 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import type { Album, Tag } from "@/types/figure"
+import { createFigure } from "@/lib/figure"
+import { getOrCreateTag } from "@/lib/tag"
+import {
+  pickImageFile,
+  importFigureImages,
+  cleanupFigureImages,
+} from "@/lib/file"
+import { convertFileSrc } from "@tauri-apps/api/core"
 
 interface ImportFigureDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   albums: Album[]
   tags: Tag[]
+  onImported: () => void
 }
 
 export function ImportFigureDialog({
@@ -33,6 +42,7 @@ export function ImportFigureDialog({
   onOpenChange,
   albums,
   tags,
+  onImported,
 }: ImportFigureDialogProps) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -40,14 +50,26 @@ export function ImportFigureDialog({
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
   const [isFavorite, setIsFavorite] = useState(false)
 
+  const [afterPath, setAfterPath] = useState<string | null>(null)
+  const [beforePath, setBeforePath] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  function resetForm() {
+    setTitle("")
+    setDescription("")
+    setAlbumId("")
+    setSelectedTags([])
+    setIsFavorite(false)
+    setAfterPath(null)
+    setBeforePath(null)
+    setError(null)
+    setSaving(false)
+  }
+
   function handleClose(isOpen: boolean) {
-    if (!isOpen) {
-      setTitle("")
-      setDescription("")
-      setAlbumId("")
-      setSelectedTags([])
-      setIsFavorite(false)
-    }
+    if (saving) return
+    if (!isOpen) resetForm()
     onOpenChange(isOpen)
   }
 
@@ -59,7 +81,80 @@ export function ImportFigureDialog({
     )
   }
 
-  const canSave = title.trim().length > 0
+  async function handlePickAfter() {
+    const path = await pickImageFile()
+    if (path) setAfterPath(path)
+  }
+
+  async function handlePickBefore() {
+    const path = await pickImageFile()
+    if (path) setBeforePath(path)
+  }
+
+  const canSave = title.trim().length > 0 && afterPath !== null && !saving
+
+  async function handleSave() {
+    if (!canSave || !afterPath) return
+
+    setSaving(true)
+    setError(null)
+
+    const figureId = crypto.randomUUID()
+
+    try {
+      const result = await importFigureImages(
+        figureId,
+        afterPath,
+        beforePath ?? undefined
+      )
+
+      try {
+        const images: { id: string; imagePath: string; imageRole: string; sortOrder: number }[] = [
+          { id: crypto.randomUUID(), imagePath: result.afterPath, imageRole: "after", sortOrder: 0 },
+        ]
+        if (result.beforePath) {
+          images.push({
+            id: crypto.randomUUID(),
+            imagePath: result.beforePath,
+            imageRole: "before",
+            sortOrder: 1,
+          })
+        }
+
+        const tagIds: string[] = []
+        for (const tag of selectedTags) {
+          const t = await getOrCreateTag({ id: tag.id, name: tag.name, color: tag.color })
+          tagIds.push(t.id)
+        }
+
+        await createFigure({
+          id: figureId,
+          title: title.trim(),
+          description: description.trim() || undefined,
+          albumId: albumId || undefined,
+          isFavorite,
+          images,
+          tagIds,
+        })
+      } catch (dbError) {
+        await cleanupFigureImages(figureId)
+        throw dbError
+      }
+
+      resetForm()
+      onOpenChange(false)
+      onImported()
+    } catch (e) {
+      console.error("Import failed:", e)
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function previewSrc(filePath: string): string {
+    return convertFileSrc(filePath)
+  }
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -74,22 +169,62 @@ export function ImportFigureDialog({
             <label className="text-sm font-medium">
               AI 图片 <span className="text-destructive">*</span>
             </label>
-            <div className="flex h-32 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 transition-colors hover:border-primary/50 hover:bg-muted">
-              <div className="flex flex-col items-center gap-1 text-muted-foreground">
-                <ImagePlus className="size-8" />
-                <span className="text-xs">点击选择 After 图片</span>
-              </div>
+            <div
+              className="flex h-32 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 transition-colors hover:border-primary/50 hover:bg-muted overflow-hidden"
+              onClick={handlePickAfter}
+            >
+              {afterPath ? (
+                <div className="relative size-full">
+                  <img
+                    src={previewSrc(afterPath)}
+                    alt="After 预览"
+                    className="size-full object-contain"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white hover:bg-black/80"
+                    onClick={(e) => { e.stopPropagation(); setAfterPath(null) }}
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                  <ImagePlus className="size-8" />
+                  <span className="text-xs">点击选择 After 图片</span>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Before 图片 */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium">原始图片（可选）</label>
-            <div className="flex h-24 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 transition-colors hover:border-primary/50 hover:bg-muted">
-              <div className="flex flex-col items-center gap-1 text-muted-foreground">
-                <ImagePlus className="size-6" />
-                <span className="text-xs">点击选择 Before 图片</span>
-              </div>
+            <div
+              className="flex h-24 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 transition-colors hover:border-primary/50 hover:bg-muted overflow-hidden"
+              onClick={handlePickBefore}
+            >
+              {beforePath ? (
+                <div className="relative size-full">
+                  <img
+                    src={previewSrc(beforePath)}
+                    alt="Before 预览"
+                    className="size-full object-contain"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white hover:bg-black/80"
+                    onClick={(e) => { e.stopPropagation(); setBeforePath(null) }}
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                  <ImagePlus className="size-6" />
+                  <span className="text-xs">点击选择 Before 图片</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -167,14 +302,19 @@ export function ImportFigureDialog({
               {isFavorite ? "★ 已星标" : "☆ 添加星标"}
             </Button>
           </div>
+
+          {error && (
+            <p className="text-sm text-destructive">{error}</p>
+          )}
         </div>
 
         <DialogFooter className="mt-2">
-          <Button variant="outline" onClick={() => handleClose(false)}>
+          <Button variant="outline" onClick={() => handleClose(false)} disabled={saving}>
             取消
           </Button>
-          <Button disabled={!canSave} onClick={() => handleClose(false)}>
-            保存
+          <Button disabled={!canSave} onClick={handleSave}>
+            {saving && <Loader2 className="mr-1.5 size-4 animate-spin" />}
+            {saving ? "导入中…" : "保存"}
           </Button>
         </DialogFooter>
       </DialogContent>

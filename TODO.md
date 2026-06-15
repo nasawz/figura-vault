@@ -181,45 +181,46 @@
 
 ### 4.1 Tauri 文件系统配置
 
-- [ ] P4-1 配置 Tauri 文件系统权限（`fs` scope / `dialog` 插件）
-- [ ] P4-2 封装 `src/lib/file.ts`：获取应用数据目录路径的工具函数
-- [ ] P4-3 实现获取/创建 `images/` 根目录的逻辑
+- [x] P4-1 配置 Tauri 文件系统权限（`dialog` 插件 + asset protocol scope）
+  - 注：文件复制由 Rust command（`std::fs`）实现，不使用 Tauri fs plugin
+- [x] P4-2 封装 `src/lib/file.ts`：获取应用数据目录路径的工具函数
+- [x] P4-3 实现获取/创建 `images/` 根目录的逻辑
 
 ### 4.2 图片选择
 
-- [ ] P4-4 实现 After 图片选择：调用 Tauri 文件选择 Dialog，限制文件类型为图片（png/jpg/jpeg/webp）
-- [ ] P4-5 实现 Before 图片选择：同上，可选
-- [ ] P4-6 选择图片后在 ImportFigureDialog 中预览缩略图
-- [ ] P4-7 处理用户取消选择的情况（不报错，保持当前状态）
+- [x] P4-4 实现 After 图片选择：调用 Tauri 文件选择 Dialog，限制文件类型为图片（png/jpg/jpeg/webp）
+- [x] P4-5 实现 Before 图片选择：同上，可选
+- [x] P4-6 选择图片后在 ImportFigureDialog 中预览缩略图
+- [x] P4-7 处理用户取消选择的情况（不报错，保持当前状态）
 
 ### 4.3 图片复制与存储
 
-- [ ] P4-8 实现 ID 生成逻辑（UUID 或 nanoid）
-- [ ] P4-9 实现创建 `images/{figureId}/` 目录
-- [ ] P4-10 实现复制 After 图片到 `images/{figureId}/after.{ext}`
-- [ ] P4-11 实现复制 Before 图片到 `images/{figureId}/before.{ext}`（如果有）
-- [ ] P4-12 返回复制后的相对路径，用于写入 `figure_images` 表
+- [x] P4-8 实现 ID 生成逻辑（UUID 或 nanoid）
+- [x] P4-9 实现创建 `images/{figureId}/` 目录
+- [x] P4-10 实现复制 After 图片到 `images/{figureId}/after.{ext}`
+- [x] P4-11 实现复制 Before 图片到 `images/{figureId}/before.{ext}`（如果有）
+- [x] P4-12 返回复制后的相对路径，用于写入 `figure_images` 表
 
 ### 4.4 导入完整流程串联
 
-- [ ] P4-13 ImportFigureDialog 保存按钮点击后：
+- [x] P4-13 ImportFigureDialog 保存按钮点击后：
   1. 生成 figureId
   2. 复制图片到 AppData
   3. 写入 figures 表
   4. 写入 figure_images 表
   5. 处理标签（getOrCreate + 写入 figure_tags）
-- [ ] P4-14 导入完成后关闭弹窗并刷新收藏墙
-- [ ] P4-15 导入失败时的错误处理（回滚已复制的文件、显示错误提示）
-- [ ] P4-16 表单验证：After 图片和标题为必填，未填时禁用保存按钮
+- [x] P4-14 导入完成后关闭弹窗并刷新收藏墙
+- [x] P4-15 导入失败时的错误处理（回滚已复制的文件、显示错误提示）
+- [x] P4-16 表单验证：After 图片和标题为必填，未填时禁用保存按钮
 
 ### 4.5 图片加载
 
-- [ ] P4-17 实现从 AppData 路径加载图片到前端展示（Tauri `convertFileSrc` 或 asset protocol）
-- [ ] P4-18 FigureCard 和 FigureDetailDialog 使用真实图片路径渲染
+- [x] P4-17 实现从 AppData 路径加载图片到前端展示（Tauri `convertFileSrc` + asset protocol）
+- [x] P4-18 FigureCard 和 FigureDetailDialog 使用真实图片路径渲染
 
 ### 验收
 
-- [ ] P4-AC 确认：可选择本地图片、图片被复制到 AppData、数据库记录正确、收藏墙显示真实图片、重启后图片仍可显示、原图删除不影响应用
+- [x] P4-AC 确认：可选择本地图片、图片被复制到 AppData、数据库记录正确、收藏墙显示真实图片、重启后图片仍可显示、原图删除不影响应用
 
 ---
 

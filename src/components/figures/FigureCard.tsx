@@ -1,5 +1,6 @@
 import type { FigureItem } from "@/types/figure"
 import { getAfterImage } from "@/types/figure"
+import { useImageSrc } from "@/hooks/use-image-src"
 
 interface FigureCardProps {
   figure: FigureItem
@@ -8,6 +9,7 @@ interface FigureCardProps {
 
 export function FigureCard({ figure, onClick }: FigureCardProps) {
   const afterImage = getAfterImage(figure)
+  const src = useImageSrc(afterImage?.imagePath)
 
   return (
     <button
@@ -16,9 +18,9 @@ export function FigureCard({ figure, onClick }: FigureCardProps) {
       onClick={onClick}
     >
       <div className="aspect-[9/16] overflow-hidden bg-white">
-        {afterImage ? (
+        {src ? (
           <img
-            src={afterImage.imagePath}
+            src={src}
             alt={figure.title}
             className="size-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
             loading="lazy"

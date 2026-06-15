@@ -140,6 +140,7 @@ function App() {
         onOpenChange={setIsImportOpen}
         albums={albums}
         tags={tags}
+        onImported={loadData}
       />
     </AppLayout>
   )

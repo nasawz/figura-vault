@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ImagePlus, X, Loader2 } from "lucide-react"
+import { ImagePlus, X, Loader2, Sparkles } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,7 @@ import {
   importFigureImages,
   cleanupFigureImages,
 } from "@/lib/file"
+import { analyzeImageWithOllama } from "@/lib/ollama"
 import { convertFileSrc } from "@tauri-apps/api/core"
 
 interface ImportFigureDialogProps {
@@ -53,7 +54,9 @@ export function ImportFigureDialog({
   const [afterPath, setAfterPath] = useState<string | null>(null)
   const [beforePath, setBeforePath] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [analyzing, setAnalyzing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [analysisLogs, setAnalysisLogs] = useState<string[]>([])
 
   function resetForm() {
     setTitle("")
@@ -65,10 +68,56 @@ export function ImportFigureDialog({
     setBeforePath(null)
     setError(null)
     setSaving(false)
+    setAnalyzing(false)
+    setAnalysisLogs([])
+  }
+
+  async function handleAiAnalyze() {
+    if (!afterPath || analyzing) return
+    setAnalyzing(true)
+    setError(null)
+    setAnalysisLogs([])
+    const appendLog = (message: string) => {
+      setAnalysisLogs((prev) => [...prev, message])
+    }
+    try {
+      appendLog("开始 AI 识别流程")
+      const result = await analyzeImageWithOllama(afterPath, appendLog)
+      if (!title.trim()) setTitle(result.title)
+      if (!description.trim()) setDescription(result.description)
+
+      const aiTags = result.tags
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0)
+        .slice(0, 6)
+
+      setSelectedTags((prev) => {
+        const existing = new Set(prev.map((t) => t.name))
+        const newTags: Tag[] = []
+        for (const name of aiTags) {
+          if (existing.has(name)) continue
+          existing.add(name)
+          const found = tags.find((t) => t.name === name)
+          if (found) {
+            newTags.push(found)
+          } else {
+            newTags.push({ id: crypto.randomUUID(), name })
+          }
+        }
+        return [...prev, ...newTags]
+      })
+      appendLog(`已填充：${result.title}，${result.tags.length} 个标签`)
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
+      appendLog(`识别失败：${message}`)
+      setError(message)
+    } finally {
+      setAnalyzing(false)
+    }
   }
 
   function handleClose(isOpen: boolean) {
-    if (saving) return
+    if (saving || analyzing) return
     if (!isOpen) resetForm()
     onOpenChange(isOpen)
   }
@@ -197,6 +246,37 @@ export function ImportFigureDialog({
             </div>
           </div>
 
+          {/* AI 识别 */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-full"
+            disabled={!afterPath || analyzing || saving}
+            onClick={handleAiAnalyze}
+          >
+            {analyzing ? (
+              <Loader2 className="mr-1.5 size-4 animate-spin" />
+            ) : (
+              <Sparkles className="mr-1.5 size-4" />
+            )}
+            {analyzing ? "AI 识别中…" : "AI 识别填充"}
+          </Button>
+
+          {analysisLogs.length > 0 && (
+            <div className="rounded-md border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+              <div className="mb-1 font-medium text-foreground/80">识别日志</div>
+              <div className="space-y-1">
+                {analysisLogs.map((log, index) => (
+                  <div key={`${index}-${log}`} className="flex gap-2">
+                    <span className="mt-[0.15rem] size-1.5 shrink-0 rounded-full bg-muted-foreground/50" />
+                    <span>{log}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Before 图片 */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium">原始图片（可选）</label>
@@ -288,6 +368,19 @@ export function ImportFigureDialog({
                   </Badge>
                 )
               })}
+              {selectedTags
+                .filter((st) => !tags.some((t) => t.id === st.id))
+                .map((tag) => (
+                  <Badge
+                    key={tag.id}
+                    variant="default"
+                    className="cursor-pointer select-none border-dashed"
+                    onClick={() => toggleTag(tag)}
+                  >
+                    {tag.name}
+                    <X className="ml-1 size-3" />
+                  </Badge>
+                ))}
             </div>
           </div>
 

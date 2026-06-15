@@ -1,5 +1,10 @@
 use std::fs;
+use std::io::Cursor;
 use std::path::PathBuf;
+use base64::Engine;
+use image::codecs::jpeg::JpegEncoder;
+use image::imageops::FilterType;
+use image::ImageReader;
 use tauri::Manager;
 use tauri_plugin_sql::{Builder as SqlBuilder, Migration, MigrationKind};
 
@@ -100,6 +105,269 @@ fn get_app_data_dir(app: tauri::AppHandle) -> Result<String, String> {
         .ok_or_else(|| "AppData 路径包含无效 Unicode".to_string())
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
+struct ImageAnalysis {
+    title: String,
+    description: String,
+    tags: Vec<String>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct OllamaToolCallFunction {
+    name: String,
+    arguments: serde_json::Value,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct OllamaToolCall {
+    function: OllamaToolCallFunction,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct OllamaMessage {
+    role: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    content: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    images: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tool_calls: Option<Vec<OllamaToolCall>>,
+}
+
+#[derive(serde::Deserialize)]
+struct OllamaChatResponse {
+    message: OllamaMessage,
+}
+
+struct PreparedImage {
+    base64: String,
+    original_width: u32,
+    original_height: u32,
+    width: u32,
+    height: u32,
+    bytes: usize,
+}
+
+fn prepare_image_for_ollama(image_path: &str) -> Result<PreparedImage, String> {
+    const MAX_LONG_EDGE: u32 = 768;
+    const JPEG_QUALITY: u8 = 82;
+
+    let image = ImageReader::open(image_path)
+        .map_err(|e| format!("打开图片失败: {e}"))?
+        .with_guessed_format()
+        .map_err(|e| format!("识别图片格式失败: {e}"))?
+        .decode()
+        .map_err(|e| format!("解码图片失败: {e}"))?;
+
+    let original_width = image.width();
+    let original_height = image.height();
+    let long_edge = original_width.max(original_height);
+    let (width, height) = if long_edge > MAX_LONG_EDGE {
+        let scale = MAX_LONG_EDGE as f32 / long_edge as f32;
+        (
+            ((original_width as f32 * scale).round() as u32).max(1),
+            ((original_height as f32 * scale).round() as u32).max(1),
+        )
+    } else {
+        (original_width, original_height)
+    };
+
+    let resized = if width == original_width && height == original_height {
+        image
+    } else {
+        image.resize(width, height, FilterType::Lanczos3)
+    };
+
+    let rgb = resized.to_rgb8();
+    let mut jpeg_bytes = Vec::new();
+    {
+        let mut cursor = Cursor::new(&mut jpeg_bytes);
+        let mut encoder = JpegEncoder::new_with_quality(&mut cursor, JPEG_QUALITY);
+        encoder
+            .encode(
+                &rgb,
+                rgb.width(),
+                rgb.height(),
+                image::ExtendedColorType::Rgb8,
+            )
+            .map_err(|e| format!("压缩图片失败: {e}"))?;
+    }
+
+    let base64 = base64::engine::general_purpose::STANDARD.encode(&jpeg_bytes);
+    Ok(PreparedImage {
+        base64,
+        original_width,
+        original_height,
+        width,
+        height,
+        bytes: jpeg_bytes.len(),
+    })
+}
+
+fn parse_analysis_from_tool_calls(tool_calls: &[OllamaToolCall]) -> Option<ImageAnalysis> {
+    for tc in tool_calls {
+        if tc.function.name == "set_figure_metadata" {
+            let args = &tc.function.arguments;
+            let title = args.get("title")?.as_str()?.to_string();
+            let description = args.get("description")?.as_str()?.to_string();
+            let tags_val = args.get("tags")?;
+            let tags: Vec<String> = tags_val
+                .as_array()?
+                .iter()
+                .filter_map(|v| v.as_str().map(|s| s.trim().to_string()))
+                .filter(|s| !s.is_empty())
+                .take(6)
+                .collect();
+            return Some(ImageAnalysis {
+                title,
+                description,
+                tags,
+            });
+        }
+    }
+    None
+}
+
+fn parse_analysis_from_json_content(content: &str) -> Option<ImageAnalysis> {
+    let trimmed = content.trim();
+
+    let json_str = if let Some(start) = trimmed.find('{') {
+        if let Some(end) = trimmed.rfind('}') {
+            &trimmed[start..=end]
+        } else {
+            return None;
+        }
+    } else {
+        return None;
+    };
+
+    let val: serde_json::Value = serde_json::from_str(json_str).ok()?;
+    let title = val.get("title")?.as_str()?.to_string();
+    let description = val.get("description")?.as_str()?.to_string();
+    let tags: Vec<String> = val
+        .get("tags")?
+        .as_array()?
+        .iter()
+        .filter_map(|v| v.as_str().map(|s| s.trim().to_string()))
+        .filter(|s| !s.is_empty())
+        .take(6)
+        .collect();
+    Some(ImageAnalysis {
+        title,
+        description,
+        tags,
+    })
+}
+
+#[tauri::command]
+async fn analyze_figure_image(image_path: String) -> Result<ImageAnalysis, String> {
+    allowed_extension(&image_path)
+        .ok_or("不支持的图片格式，仅允许 png/jpg/jpeg/webp")?;
+
+    let prepared = prepare_image_for_ollama(&image_path)?;
+    println!(
+        "[ollama] image prepared: original {}x{}, compressed {}x{}, ~{} KB",
+        prepared.original_width,
+        prepared.original_height,
+        prepared.width,
+        prepared.height,
+        prepared.bytes / 1024
+    );
+    let tool_schema = serde_json::json!({
+        "type": "function",
+        "function": {
+            "name": "set_figure_metadata",
+            "description": "根据图片内容设置手办/收藏品的元数据信息",
+            "parameters": {
+                "type": "object",
+                "required": ["title", "description", "tags"],
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "简短的中文标题，8-18个字，描述图片中手办/物品的主要特征"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "中文介绍，1-2句话，描述图片内容、风格或特点"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "3-6个中文短标签，如：可爱、机甲、动物、食物、赛博朋克、桌面摆件等"
+                    }
+                }
+            }
+        }
+    });
+
+    let body = serde_json::json!({
+        "model": "huihui_ai/qwen3.5-abliterated:4b",
+        "stream": false,
+        "messages": [
+            {
+                "role": "system",
+                "content": "你是一个手办/收藏品图片分析助手。请根据图片内容调用 set_figure_metadata 工具来设置标题、描述和标签。\n规则：\n- 只基于图片实际内容描述，不编造艺术家、来源或人物身份\n- 标题：简短中文，8-18字\n- 描述：中文，1-2句话\n- 标签：3-6个中文短标签\n- 如果你无法调用工具，请直接返回JSON格式：{\"title\":\"...\",\"description\":\"...\",\"tags\":[\"...\"]}"
+            },
+            {
+                "role": "user",
+                "content": format!("请分析这张手办/收藏品图片，给出标题、描述和标签。图片已压缩为 {}x{}。", prepared.width, prepared.height),
+                "images": [prepared.base64]
+            }
+        ],
+        "tools": [tool_schema]
+    });
+
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(120))
+        .build()
+        .map_err(|e| format!("创建 HTTP 客户端失败: {e}"))?;
+
+    let response = client
+        .post("http://localhost:11434/api/chat")
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| {
+            if e.is_connect() {
+                "无法连接 Ollama 服务，请确认 Ollama 已启动（默认地址 http://localhost:11434）".to_string()
+            } else if e.is_timeout() {
+                "Ollama 请求超时，模型可能正在加载或图片过大，请稍后重试".to_string()
+            } else {
+                format!("请求 Ollama 失败: {e}")
+            }
+        })?;
+
+    let status = response.status();
+    if !status.is_success() {
+        let err_text = response.text().await.unwrap_or_default();
+        if status.as_u16() == 404 {
+            return Err(
+                "模型不存在，请先运行 ollama pull huihui_ai/qwen3.5-abliterated:4b".to_string(),
+            );
+        }
+        return Err(format!("Ollama 返回错误 (HTTP {status}): {err_text}"));
+    }
+
+    let chat_resp: OllamaChatResponse = response
+        .json()
+        .await
+        .map_err(|e| format!("解析 Ollama 响应失败: {e}"))?;
+
+    if let Some(ref tool_calls) = chat_resp.message.tool_calls {
+        if let Some(analysis) = parse_analysis_from_tool_calls(tool_calls) {
+            return Ok(analysis);
+        }
+    }
+
+    if let Some(ref content) = chat_resp.message.content {
+        if let Some(analysis) = parse_analysis_from_json_content(content) {
+            return Ok(analysis);
+        }
+    }
+
+    Err("AI 模型未返回有效的分析结果，该模型可能不支持图片识别或工具调用".to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let migrations = vec![
@@ -184,6 +452,7 @@ pub fn run() {
             import_figure_images,
             cleanup_figure_images,
             get_app_data_dir,
+            analyze_figure_image,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -55,7 +55,7 @@ export function AppLayout({
         <SidebarTrigger className="fixed left-[80px] top-1 z-50 size-6 shrink-0 rounded-md bg-sidebar text-sidebar-foreground/65 shadow-xs hover:bg-sidebar-accent hover:text-sidebar-foreground [&_svg]:size-3.5" />
         <SidebarInset className="overflow-hidden">
           <TopBar title={topBarTitle} onImportClick={onImportClick} />
-          <div className="flex flex-1 flex-col overflow-auto">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             {children}
           </div>
         </SidebarInset>

@@ -59,7 +59,6 @@ function App() {
         selectedTagId={selectedTagId}
         onSearchChange={setSearchQuery}
         onOpenFigure={setSelectedFigure}
-        onToggleFavorite={toggleFavorite}
         onImportClick={() => setIsImportOpen(true)}
       />
 

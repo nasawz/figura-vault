@@ -5,10 +5,9 @@ import { FigureCard } from "./FigureCard"
 interface FigureGridProps {
   figures: FigureItem[]
   onOpenFigure: (figure: FigureItem) => void
-  onToggleFavorite: (figureId: string) => void
 }
 
-export function FigureGrid({ figures, onOpenFigure, onToggleFavorite }: FigureGridProps) {
+export function FigureGrid({ figures, onOpenFigure }: FigureGridProps) {
   if (figures.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 py-20">
@@ -21,13 +20,12 @@ export function FigureGrid({ figures, onOpenFigure, onToggleFavorite }: FigureGr
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 p-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 p-4 md:grid-cols-3 xl:grid-cols-4">
       {figures.map((figure) => (
         <FigureCard
           key={figure.id}
           figure={figure}
           onClick={() => onOpenFigure(figure)}
-          onToggleFavorite={() => onToggleFavorite(figure.id)}
         />
       ))}
     </div>

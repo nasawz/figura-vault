@@ -16,9 +16,7 @@ export const mockTags: Tag[] = [
   { id: "tag-6", name: "桌面物品", color: "bg-cyan-500" },
 ]
 
-function img(seed: number, w = 600, h = 800): string {
-  return `https://picsum.photos/seed/figura${seed}/${w}/${h}`
-}
+const displayImage = "/mock/figure-display.png"
 
 export const mockFigures: FigureItem[] = [
   {
@@ -30,8 +28,8 @@ export const mockFigures: FigureItem[] = [
     rating: 5,
     isFavorite: true,
     images: [
-      { id: "img-1a", figureId: "fig-1", imagePath: img(10), imageRole: "after", sortOrder: 0, createdAt: "2025-01-10" },
-      { id: "img-1b", figureId: "fig-1", imagePath: img(11), imageRole: "before", sortOrder: 1, createdAt: "2025-01-10" },
+      { id: "img-1a", figureId: "fig-1", imagePath: displayImage, imageRole: "after", sortOrder: 0, createdAt: "2025-01-10" },
+      { id: "img-1b", figureId: "fig-1", imagePath: displayImage, imageRole: "before", sortOrder: 1, createdAt: "2025-01-10" },
     ],
     tags: [mockTags[0], mockTags[1], mockTags[3]],
     createdAt: "2025-01-10",
@@ -46,8 +44,8 @@ export const mockFigures: FigureItem[] = [
     rating: 4,
     isFavorite: true,
     images: [
-      { id: "img-2a", figureId: "fig-2", imagePath: img(20), imageRole: "after", sortOrder: 0, createdAt: "2025-01-12" },
-      { id: "img-2b", figureId: "fig-2", imagePath: img(21), imageRole: "before", sortOrder: 1, createdAt: "2025-01-12" },
+      { id: "img-2a", figureId: "fig-2", imagePath: displayImage, imageRole: "after", sortOrder: 0, createdAt: "2025-01-12" },
+      { id: "img-2b", figureId: "fig-2", imagePath: displayImage, imageRole: "before", sortOrder: 1, createdAt: "2025-01-12" },
     ],
     tags: [mockTags[0], mockTags[2], mockTags[3]],
     createdAt: "2025-01-12",
@@ -62,7 +60,7 @@ export const mockFigures: FigureItem[] = [
     rating: 5,
     isFavorite: true,
     images: [
-      { id: "img-3a", figureId: "fig-3", imagePath: img(30), imageRole: "after", sortOrder: 0, createdAt: "2025-02-01" },
+      { id: "img-3a", figureId: "fig-3", imagePath: displayImage, imageRole: "after", sortOrder: 0, createdAt: "2025-02-01" },
     ],
     tags: [mockTags[1], mockTags[2]],
     createdAt: "2025-02-01",
@@ -77,8 +75,8 @@ export const mockFigures: FigureItem[] = [
     rating: 3,
     isFavorite: false,
     images: [
-      { id: "img-4a", figureId: "fig-4", imagePath: img(40), imageRole: "after", sortOrder: 0, createdAt: "2025-02-05" },
-      { id: "img-4b", figureId: "fig-4", imagePath: img(41), imageRole: "before", sortOrder: 1, createdAt: "2025-02-05" },
+      { id: "img-4a", figureId: "fig-4", imagePath: displayImage, imageRole: "after", sortOrder: 0, createdAt: "2025-02-05" },
+      { id: "img-4b", figureId: "fig-4", imagePath: displayImage, imageRole: "before", sortOrder: 1, createdAt: "2025-02-05" },
     ],
     tags: [mockTags[1]],
     createdAt: "2025-02-05",
@@ -93,7 +91,7 @@ export const mockFigures: FigureItem[] = [
     rating: 4,
     isFavorite: false,
     images: [
-      { id: "img-5a", figureId: "fig-5", imagePath: img(50), imageRole: "after", sortOrder: 0, createdAt: "2025-03-01" },
+      { id: "img-5a", figureId: "fig-5", imagePath: displayImage, imageRole: "after", sortOrder: 0, createdAt: "2025-03-01" },
     ],
     tags: [mockTags[0], mockTags[5]],
     createdAt: "2025-03-01",
@@ -108,8 +106,8 @@ export const mockFigures: FigureItem[] = [
     rating: 3,
     isFavorite: true,
     images: [
-      { id: "img-6a", figureId: "fig-6", imagePath: img(60), imageRole: "after", sortOrder: 0, createdAt: "2025-03-05" },
-      { id: "img-6b", figureId: "fig-6", imagePath: img(61), imageRole: "before", sortOrder: 1, createdAt: "2025-03-05" },
+      { id: "img-6a", figureId: "fig-6", imagePath: displayImage, imageRole: "after", sortOrder: 0, createdAt: "2025-03-05" },
+      { id: "img-6b", figureId: "fig-6", imagePath: displayImage, imageRole: "before", sortOrder: 1, createdAt: "2025-03-05" },
     ],
     tags: [mockTags[0], mockTags[5]],
     createdAt: "2025-03-05",
@@ -124,7 +122,7 @@ export const mockFigures: FigureItem[] = [
     rating: 4,
     isFavorite: false,
     images: [
-      { id: "img-7a", figureId: "fig-7", imagePath: img(70), imageRole: "after", sortOrder: 0, createdAt: "2025-04-01" },
+      { id: "img-7a", figureId: "fig-7", imagePath: displayImage, imageRole: "after", sortOrder: 0, createdAt: "2025-04-01" },
     ],
     tags: [mockTags[0], mockTags[4]],
     createdAt: "2025-04-01",
@@ -139,8 +137,8 @@ export const mockFigures: FigureItem[] = [
     rating: 5,
     isFavorite: true,
     images: [
-      { id: "img-8a", figureId: "fig-8", imagePath: img(80), imageRole: "after", sortOrder: 0, createdAt: "2025-04-10" },
-      { id: "img-8b", figureId: "fig-8", imagePath: img(81), imageRole: "before", sortOrder: 1, createdAt: "2025-04-10" },
+      { id: "img-8a", figureId: "fig-8", imagePath: displayImage, imageRole: "after", sortOrder: 0, createdAt: "2025-04-10" },
+      { id: "img-8b", figureId: "fig-8", imagePath: displayImage, imageRole: "before", sortOrder: 1, createdAt: "2025-04-10" },
     ],
     tags: [mockTags[0], mockTags[4]],
     createdAt: "2025-04-10",

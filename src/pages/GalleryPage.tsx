@@ -15,7 +15,6 @@ interface GalleryPageProps {
   selectedTagId: string | null
   onSearchChange: (query: string) => void
   onOpenFigure: (figure: FigureItem) => void
-  onToggleFavorite: (figureId: string) => void
   onImportClick: () => void
 }
 
@@ -27,7 +26,6 @@ export function GalleryPage({
   selectedTagId,
   onSearchChange,
   onOpenFigure,
-  onToggleFavorite,
   onImportClick,
 }: GalleryPageProps) {
   const filteredFigures = useMemo(() => {
@@ -92,11 +90,10 @@ export function GalleryPage({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <div className="content-scrollbar flex-1 overflow-auto">
         <FigureGrid
           figures={filteredFigures}
           onOpenFigure={onOpenFigure}
-          onToggleFavorite={onToggleFavorite}
         />
       </div>
     </div>

@@ -1,0 +1,149 @@
+import type { Album, Tag, FigureItem } from "@/types/figure"
+
+export const mockAlbums: Album[] = [
+  { id: "album-1", name: "猫咪系列", createdAt: "2025-01-01", updatedAt: "2025-01-01" },
+  { id: "album-2", name: "机甲系列", createdAt: "2025-01-02", updatedAt: "2025-01-02" },
+  { id: "album-3", name: "桌面物品系列", createdAt: "2025-01-03", updatedAt: "2025-01-03" },
+  { id: "album-4", name: "食物手办系列", createdAt: "2025-01-04", updatedAt: "2025-01-04" },
+]
+
+export const mockTags: Tag[] = [
+  { id: "tag-1", name: "可爱", color: "bg-pink-500" },
+  { id: "tag-2", name: "机甲", color: "bg-blue-500" },
+  { id: "tag-3", name: "赛博朋克", color: "bg-violet-500" },
+  { id: "tag-4", name: "动物", color: "bg-amber-500" },
+  { id: "tag-5", name: "食物", color: "bg-green-500" },
+  { id: "tag-6", name: "桌面物品", color: "bg-cyan-500" },
+]
+
+function img(seed: number, w = 600, h = 800): string {
+  return `https://picsum.photos/seed/figura${seed}/${w}/${h}`
+}
+
+export const mockFigures: FigureItem[] = [
+  {
+    id: "fig-1",
+    title: "橘猫机甲手办",
+    description: "一只穿着迷你机甲的橘猫，充满科幻感。",
+    albumId: "album-1",
+    album: mockAlbums[0],
+    rating: 5,
+    isFavorite: true,
+    images: [
+      { id: "img-1a", figureId: "fig-1", imagePath: img(10), imageRole: "after", sortOrder: 0, createdAt: "2025-01-10" },
+      { id: "img-1b", figureId: "fig-1", imagePath: img(11), imageRole: "before", sortOrder: 1, createdAt: "2025-01-10" },
+    ],
+    tags: [mockTags[0], mockTags[1], mockTags[3]],
+    createdAt: "2025-01-10",
+    updatedAt: "2025-01-10",
+  },
+  {
+    id: "fig-2",
+    title: "赛博朋克猫咪",
+    description: "霓虹灯下的黑猫，赛博朋克风格。",
+    albumId: "album-1",
+    album: mockAlbums[0],
+    rating: 4,
+    isFavorite: true,
+    images: [
+      { id: "img-2a", figureId: "fig-2", imagePath: img(20), imageRole: "after", sortOrder: 0, createdAt: "2025-01-12" },
+      { id: "img-2b", figureId: "fig-2", imagePath: img(21), imageRole: "before", sortOrder: 1, createdAt: "2025-01-12" },
+    ],
+    tags: [mockTags[0], mockTags[2], mockTags[3]],
+    createdAt: "2025-01-12",
+    updatedAt: "2025-01-12",
+  },
+  {
+    id: "fig-3",
+    title: "钢铁战甲",
+    description: "经典钢铁侠风格的机甲手办。",
+    albumId: "album-2",
+    album: mockAlbums[1],
+    rating: 5,
+    isFavorite: true,
+    images: [
+      { id: "img-3a", figureId: "fig-3", imagePath: img(30), imageRole: "after", sortOrder: 0, createdAt: "2025-02-01" },
+    ],
+    tags: [mockTags[1], mockTags[2]],
+    createdAt: "2025-02-01",
+    updatedAt: "2025-02-01",
+  },
+  {
+    id: "fig-4",
+    title: "高达 RX-78",
+    description: "经典高达造型的 AI 手办化版本。",
+    albumId: "album-2",
+    album: mockAlbums[1],
+    rating: 3,
+    isFavorite: false,
+    images: [
+      { id: "img-4a", figureId: "fig-4", imagePath: img(40), imageRole: "after", sortOrder: 0, createdAt: "2025-02-05" },
+      { id: "img-4b", figureId: "fig-4", imagePath: img(41), imageRole: "before", sortOrder: 1, createdAt: "2025-02-05" },
+    ],
+    tags: [mockTags[1]],
+    createdAt: "2025-02-05",
+    updatedAt: "2025-02-05",
+  },
+  {
+    id: "fig-5",
+    title: "迷你键盘手办",
+    description: "桌面上的迷你机械键盘，变成了可爱的手办。",
+    albumId: "album-3",
+    album: mockAlbums[2],
+    rating: 4,
+    isFavorite: false,
+    images: [
+      { id: "img-5a", figureId: "fig-5", imagePath: img(50), imageRole: "after", sortOrder: 0, createdAt: "2025-03-01" },
+    ],
+    tags: [mockTags[0], mockTags[5]],
+    createdAt: "2025-03-01",
+    updatedAt: "2025-03-01",
+  },
+  {
+    id: "fig-6",
+    title: "多肉植物手办",
+    description: "桌面上的多肉植物化身为手办形态。",
+    albumId: "album-3",
+    album: mockAlbums[2],
+    rating: 3,
+    isFavorite: true,
+    images: [
+      { id: "img-6a", figureId: "fig-6", imagePath: img(60), imageRole: "after", sortOrder: 0, createdAt: "2025-03-05" },
+      { id: "img-6b", figureId: "fig-6", imagePath: img(61), imageRole: "before", sortOrder: 1, createdAt: "2025-03-05" },
+    ],
+    tags: [mockTags[0], mockTags[5]],
+    createdAt: "2025-03-05",
+    updatedAt: "2025-03-05",
+  },
+  {
+    id: "fig-7",
+    title: "拉面手办",
+    description: "一碗精致的日式拉面变成了 Q 版手办。",
+    albumId: "album-4",
+    album: mockAlbums[3],
+    rating: 4,
+    isFavorite: false,
+    images: [
+      { id: "img-7a", figureId: "fig-7", imagePath: img(70), imageRole: "after", sortOrder: 0, createdAt: "2025-04-01" },
+    ],
+    tags: [mockTags[0], mockTags[4]],
+    createdAt: "2025-04-01",
+    updatedAt: "2025-04-01",
+  },
+  {
+    id: "fig-8",
+    title: "甜甜圈手办",
+    description: "粉色甜甜圈化身为可爱的手办角色。",
+    albumId: "album-4",
+    album: mockAlbums[3],
+    rating: 5,
+    isFavorite: true,
+    images: [
+      { id: "img-8a", figureId: "fig-8", imagePath: img(80), imageRole: "after", sortOrder: 0, createdAt: "2025-04-10" },
+      { id: "img-8b", figureId: "fig-8", imagePath: img(81), imageRole: "before", sortOrder: 1, createdAt: "2025-04-10" },
+    ],
+    tags: [mockTags[0], mockTags[4]],
+    createdAt: "2025-04-10",
+    updatedAt: "2025-04-10",
+  },
+]

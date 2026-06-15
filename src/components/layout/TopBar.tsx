@@ -4,7 +4,12 @@ import { useSidebar } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 import { startWindowDrag } from "@/lib/window-drag"
 
-export function TopBar() {
+interface TopBarProps {
+  title: string
+  onImportClick: () => void
+}
+
+export function TopBar({ title, onImportClick }: TopBarProps) {
   const { state } = useSidebar()
 
   return (
@@ -19,7 +24,7 @@ export function TopBar() {
         )}
       >
         <h1 className="flex h-full items-center text-sm font-medium tracking-normal text-foreground/85">
-          全部收藏
+          {title}
         </h1>
 
         <div className="min-w-3 flex-1 self-stretch" />
@@ -32,7 +37,11 @@ export function TopBar() {
           >
             <LayoutGrid />
           </Button>
-          <Button size="icon" className="size-6 rounded-md">
+          <Button
+            size="icon"
+            className="size-6 rounded-md"
+            onClick={onImportClick}
+          >
             <Plus className="size-3.5" />
           </Button>
         </div>

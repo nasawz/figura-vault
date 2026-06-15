@@ -20,24 +20,46 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { startWindowDrag } from "@/lib/window-drag"
+import type { Album, Tag, FigureItem } from "@/types/figure"
+import type { ViewMode } from "@/pages/GalleryPage"
 
-const albums = [
-  { id: "1", name: "猫咪系列", count: 12 },
-  { id: "2", name: "机甲系列", count: 8 },
-  { id: "3", name: "桌面物品系列", count: 5 },
-  { id: "4", name: "食物手办系列", count: 3 },
-]
+interface AppSidebarProps {
+  figures: FigureItem[]
+  albums: Album[]
+  tags: Tag[]
+  viewMode: ViewMode
+  selectedAlbumId: string | null
+  selectedTagId: string | null
+  onViewModeChange: (mode: ViewMode) => void
+  onAlbumSelect: (albumId: string | null) => void
+  onTagSelect: (tagId: string | null) => void
+}
 
-const tags = [
-  { id: "1", name: "可爱", color: "bg-pink-500", count: 14 },
-  { id: "2", name: "机甲", color: "bg-blue-500", count: 8 },
-  { id: "3", name: "赛博朋克", color: "bg-violet-500", count: 7 },
-  { id: "4", name: "动物", color: "bg-amber-500", count: 18 },
-  { id: "5", name: "食物", color: "bg-green-500", count: 5 },
-  { id: "6", name: "桌面物品", color: "bg-cyan-500", count: 3 },
-]
+export function AppSidebar({
+  figures,
+  albums,
+  tags,
+  viewMode,
+  selectedAlbumId,
+  selectedTagId,
+  onViewModeChange,
+  onAlbumSelect,
+  onTagSelect,
+}: AppSidebarProps) {
+  const totalCount = figures.length
+  const favCount = figures.filter((f) => f.isFavorite).length
 
-export function AppSidebar() {
+  function albumCount(albumId: string) {
+    return figures.filter((f) => f.albumId === albumId).length
+  }
+
+  function tagCount(tagId: string) {
+    return figures.filter((f) => f.tags.some((t) => t.id === tagId)).length
+  }
+
+  const isAllActive = viewMode === "all" && !selectedAlbumId && !selectedTagId
+  const isFavActive = viewMode === "favorites" && !selectedAlbumId && !selectedTagId
+
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader
@@ -46,24 +68,37 @@ export function AppSidebar() {
       />
 
       <SidebarContent className="px-2 pt-0">
-        {/* 收藏管理 */}
         <SidebarGroup>
           <SidebarGroupLabel>收藏管理</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton isActive>
+                <SidebarMenuButton
+                  isActive={isAllActive}
+                  onClick={() => {
+                    onViewModeChange("all")
+                    onAlbumSelect(null)
+                    onTagSelect(null)
+                  }}
+                >
                   <Images className="size-4" />
                   <span>全部收藏</span>
                 </SidebarMenuButton>
-                <SidebarMenuBadge>28</SidebarMenuBadge>
+                <SidebarMenuBadge>{totalCount}</SidebarMenuBadge>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton>
+                <SidebarMenuButton
+                  isActive={isFavActive}
+                  onClick={() => {
+                    onViewModeChange("favorites")
+                    onAlbumSelect(null)
+                    onTagSelect(null)
+                  }}
+                >
                   <Star className="size-4" />
                   <span>星标收藏</span>
                 </SidebarMenuButton>
-                <SidebarMenuBadge>6</SidebarMenuBadge>
+                <SidebarMenuBadge>{favCount}</SidebarMenuBadge>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
@@ -71,18 +106,24 @@ export function AppSidebar() {
 
         <SidebarSeparator />
 
-        {/* 相册 */}
         <SidebarGroup>
           <SidebarGroupLabel>相册</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {albums.map((album) => (
                 <SidebarMenuItem key={album.id}>
-                  <SidebarMenuButton>
+                  <SidebarMenuButton
+                    isActive={selectedAlbumId === album.id}
+                    onClick={() => {
+                      onViewModeChange("all")
+                      onAlbumSelect(selectedAlbumId === album.id ? null : album.id)
+                      onTagSelect(null)
+                    }}
+                  >
                     <FolderOpen className="size-4" />
                     <span>{album.name}</span>
                   </SidebarMenuButton>
-                  <SidebarMenuBadge>{album.count}</SidebarMenuBadge>
+                  <SidebarMenuBadge>{albumCount(album.id)}</SidebarMenuBadge>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -91,20 +132,26 @@ export function AppSidebar() {
 
         <SidebarSeparator />
 
-        {/* 标签 */}
         <SidebarGroup>
           <SidebarGroupLabel>标签</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {tags.map((tag) => (
                 <SidebarMenuItem key={tag.id}>
-                  <SidebarMenuButton>
+                  <SidebarMenuButton
+                    isActive={selectedTagId === tag.id}
+                    onClick={() => {
+                      onViewModeChange("all")
+                      onAlbumSelect(null)
+                      onTagSelect(selectedTagId === tag.id ? null : tag.id)
+                    }}
+                  >
                     <span
-                      className={`size-2.5 shrink-0 rounded-full ${tag.color}`}
+                      className={`size-2.5 shrink-0 rounded-full ${tag.color ?? "bg-gray-400"}`}
                     />
                     <span>{tag.name}</span>
                   </SidebarMenuButton>
-                  <SidebarMenuBadge>{tag.count}</SidebarMenuBadge>
+                  <SidebarMenuBadge>{tagCount(tag.id)}</SidebarMenuBadge>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

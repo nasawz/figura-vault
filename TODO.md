@@ -69,58 +69,57 @@
 
 ### 2.1 类型定义
 
-- [ ] P2-1 创建 `src/types/figure.ts`，定义 `FigureImageRole`、`FigureImage`、`Album`、`Tag`、`FigureItem`
-- [ ] P2-2 在 `src/types/figure.ts` 中添加辅助方法 `getAfterImage`、`getBeforeImage`、`hasBeforeAfter`
+- [x] P2-1 创建 `src/types/figure.ts`，定义 `FigureImageRole`、`FigureImage`、`Album`、`Tag`、`FigureItem`
+- [x] P2-2 在 `src/types/figure.ts` 中添加辅助方法 `getAfterImage`、`getBeforeImage`、`hasBeforeAfter`
 
 ### 2.2 Mock 数据
 
-- [ ] P2-3 创建 `src/data/mockFigures.ts`，编写至少 6-8 条 Mock 数据
+- [x] P2-3 创建 `src/data/mockFigures.ts`，编写 8 条 Mock 数据（picsum 占位图）
   - 包含：纯 After 图、Before+After 双图、不同相册、不同标签、有/无星标
-- [ ] P2-4 创建 Mock 相册列表（3-4 个相册）
-- [ ] P2-5 创建 Mock 标签列表（5-6 个标签）
+- [x] P2-4 创建 Mock 相册列表（4 个相册）
+- [x] P2-5 创建 Mock 标签列表（6 个标签，带颜色）
 
 ### 2.3 收藏墙核心组件
 
-- [ ] P2-6 实现 `FigureCard.tsx`：展示主图缩略图、标题、标签 Badge、星标按钮、B/A 标识
-- [ ] P2-7 实现 `FigureGrid.tsx`：响应式网格布局，接收 FigureItem[] 并渲染 FigureCard 列表
-- [ ] P2-8 完善 `GalleryPage.tsx`：引入 Mock 数据，渲染 FigureGrid
+- [x] P2-6 实现 `FigureCard.tsx`：展示主图缩略图、标题、标签 Badge、星标按钮、B/A 标识
+- [x] P2-7 实现 `FigureGrid.tsx`：响应式网格布局（2/3/4/5 列），空结果提示
+- [x] P2-8 完善 `GalleryPage.tsx`：引入 Mock 数据，渲染 FigureGrid，搜索框
 
 ### 2.4 侧边栏
 
-- [ ] P2-9 完善 `AppSidebar.tsx`：渲染"全部图片"和"收藏"导航项
-- [ ] P2-10 在 AppSidebar 中渲染相册列表（来自 Mock 数据），点击可切换当前相册
-- [ ] P2-11 在 AppSidebar 中渲染标签列表（来自 Mock 数据），点击可切换当前标签筛选
+- [x] P2-9 改造 `AppSidebar.tsx`：接收 props，渲染"全部收藏"和"星标收藏"导航项，实时计数
+- [x] P2-10 在 AppSidebar 中渲染相册列表（来自 Mock 数据），点击可切换当前相册
+- [x] P2-11 在 AppSidebar 中渲染标签列表（来自 Mock 数据），点击可切换当前标签筛选
 
 ### 2.5 筛选与搜索
 
-- [ ] P2-12 实现搜索框组件，按标题关键字过滤 Mock 数据
-- [ ] P2-13 实现"只看收藏"筛选功能（切换 isFavorite 过滤）
-- [ ] P2-14 实现相册筛选（选中侧边栏相册后只展示该相册收藏项）
-- [ ] P2-15 实现标签筛选（选中侧边栏标签后只展示含该标签的收藏项）
+- [x] P2-12 实现搜索框组件（带清空按钮），按标题关键字过滤
+- [x] P2-13 实现"星标收藏"筛选功能（切换 isFavorite 过滤）
+- [x] P2-14 实现相册筛选（选中侧边栏相册后只展示该相册收藏项）
+- [x] P2-15 实现标签筛选（选中侧边栏标签后只展示含该标签的收藏项）
 
 ### 2.6 详情弹窗
 
-- [ ] P2-16 实现 `FigureDetailDialog.tsx` 基础结构：Dialog 容器 + 图片区域 + 信息区域
-- [ ] P2-17 单图收藏详情：展示 After 大图、标题、描述、相册、标签、星标按钮、删除按钮占位
-- [ ] P2-18 双图收藏详情：展示 Tabs 容器（滑杆对比 / 橡皮擦对比 / 原图 / AI 图），Tab 内容先用占位图
-- [ ] P2-19 点击 FigureCard 时打开 FigureDetailDialog
+- [x] P2-16 实现 `FigureDetailDialog.tsx` 基础结构：Dialog 容器 + 图片区域 + 信息区域
+- [x] P2-17 单图收藏详情：展示 After 大图、标题、描述、相册、标签、星标按钮、删除按钮（disabled 占位）
+- [x] P2-18 双图收藏详情：展示 Tabs 容器（滑杆对比 / 橡皮擦对比 / 原图 / AI 图），滑杆/橡皮擦为占位说明
+- [x] P2-19 点击 FigureCard 时打开 FigureDetailDialog，星标状态实时同步
 
 ### 2.7 导入弹窗
 
-- [ ] P2-20 实现 `ImportFigureDialog.tsx` 静态表单：
-  - After 图片选择区（占位，显示"选择图片"按钮）
-  - Before 图片选择区（可选）
-  - 标题输入框
+- [x] P2-20 实现 `ImportFigureDialog.tsx` 静态表单：
+  - After / Before 图片选择区（虚线占位）
+  - 标题输入框（必填校验）
   - 描述输入框
-  - 相册选择下拉
-  - 标签输入
+  - 相册 Select 下拉
+  - 标签点选 Badge
   - 星标切换
-  - 保存 / 取消按钮
-- [ ] P2-21 TopBar 导入按钮点击后打开 ImportFigureDialog
+  - 保存 / 取消按钮（保存仅关闭弹窗，Phase 4 接真实保存）
+- [x] P2-21 TopBar 导入按钮点击后打开 ImportFigureDialog
 
 ### 验收
 
-- [ ] P2-AC 确认：收藏墙展示 Mock 图片、卡片信息完整、B/A 标识正确、详情弹窗可打开、搜索/筛选正常、导入弹窗可打开关闭
+- [x] P2-AC 确认：收藏墙展示 8 条 Mock 图片、卡片信息完整、B/A 标识正确、详情弹窗可打开（单图/双图）、搜索/筛选正常、导入弹窗可打开关闭、侧边栏收起展开不破布局
 
 ---
 

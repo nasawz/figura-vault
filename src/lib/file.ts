@@ -8,7 +8,7 @@ const IMAGE_FILTERS = [
 
 let appDataDirCache: string | null = null
 
-async function getAppDataDir(): Promise<string> {
+export async function getAppDataDir(): Promise<string> {
   if (!appDataDirCache) {
     appDataDirCache = await invoke<string>("get_app_data_dir")
   }

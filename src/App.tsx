@@ -3,6 +3,7 @@ import { toast } from "sonner"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { GalleryPage } from "@/pages/GalleryPage"
 import { FigureDetailPage } from "@/pages/FigureDetailPage"
+import { SettingsPage } from "@/pages/SettingsPage"
 import { ImportFigureDialog } from "@/components/figures/ImportFigureDialog"
 import { FigureFormDialog } from "@/components/figures/FigureFormDialog"
 import { Toaster } from "@/components/ui/sonner"
@@ -12,7 +13,6 @@ import { getAllFigures, toggleFavorite as dbToggleFavorite, deleteFigure } from 
 import { cleanupFigureImages } from "@/lib/file"
 import { getAllAlbums } from "@/lib/album"
 import { getAllTags } from "@/lib/tag"
-import { seedIfEmpty } from "@/lib/seed"
 
 function App() {
   const [figures, setFigures] = useState<FigureItem[]>([])
@@ -29,12 +29,12 @@ function App() {
   const [activeFigureId, setActiveFigureId] = useState<string | null>(null)
   const [isImportOpen, setIsImportOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   const loadData = useCallback(async () => {
     try {
       setError(null)
       setLoading(true)
-      await seedIfEmpty()
       const [figuresData, albumsData, tagsData] = await Promise.all([
         getAllFigures(),
         getAllAlbums(),
@@ -63,8 +63,10 @@ function App() {
           f.id === figureId ? { ...f, isFavorite: newState } : f
         )
       )
+      toast.success(newState ? "已添加星标" : "已取消星标")
     } catch (e) {
       console.error("Failed to toggle favorite:", e)
+      toast.error("操作失败", { description: e instanceof Error ? e.message : String(e) })
     }
   }, [])
 
@@ -186,8 +188,14 @@ function App() {
         onAlbumSelect={setSelectedAlbumId}
         onTagSelect={setSelectedTagId}
         onImportClick={() => setIsImportOpen(true)}
+        onSettingsClick={() => {
+          setShowSettings(true)
+          setActiveFigureId(null)
+        }}
       >
-        {activeFigure ? (
+        {showSettings ? (
+          <SettingsPage onBack={() => setShowSettings(false)} />
+        ) : activeFigure ? (
           <FigureDetailPage
             figure={activeFigure}
             onBack={() => setActiveFigureId(null)}
@@ -208,7 +216,10 @@ function App() {
             hasActiveFilters={hasActiveFilters}
             onClearFilters={clearFilters}
             onSearchChange={setSearchQuery}
-            onOpenFigure={(f) => setActiveFigureId(f.id)}
+            onOpenFigure={(f) => {
+              setActiveFigureId(f.id)
+              setShowSettings(false)
+            }}
             onImportClick={() => setIsImportOpen(true)}
           />
         )}
@@ -218,7 +229,10 @@ function App() {
           onOpenChange={setIsImportOpen}
           albums={albums}
           tags={tags}
-          onImported={loadData}
+          onImported={() => {
+            toast.success("收藏项已导入")
+            loadData()
+          }}
         />
 
         {activeFigure && (

@@ -22,6 +22,7 @@ interface AppLayoutProps {
   onAlbumSelect: (albumId: string | null) => void
   onTagSelect: (tagId: string | null) => void
   onImportClick: () => void
+  onSettingsClick: () => void
 }
 
 export function AppLayout({
@@ -37,6 +38,7 @@ export function AppLayout({
   onAlbumSelect,
   onTagSelect,
   onImportClick,
+  onSettingsClick,
 }: AppLayoutProps) {
   return (
     <TooltipProvider>
@@ -51,6 +53,7 @@ export function AppLayout({
           onViewModeChange={onViewModeChange}
           onAlbumSelect={onAlbumSelect}
           onTagSelect={onTagSelect}
+          onSettingsClick={onSettingsClick}
         />
         <SidebarTrigger className="fixed left-[80px] top-1 z-50 size-6 shrink-0 rounded-md bg-sidebar text-sidebar-foreground/65 shadow-xs hover:bg-sidebar-accent hover:text-sidebar-foreground [&_svg]:size-3.5" />
         <SidebarInset className="overflow-hidden">

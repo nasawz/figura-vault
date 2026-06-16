@@ -1,3 +1,5 @@
+import { useState } from "react"
+import { ImageOff } from "lucide-react"
 import type { FigureItem } from "@/types/figure"
 import { getAfterImage } from "@/types/figure"
 import { useImageSrc } from "@/hooks/use-image-src"
@@ -10,6 +12,7 @@ interface FigureCardProps {
 export function FigureCard({ figure, onClick }: FigureCardProps) {
   const afterImage = getAfterImage(figure)
   const src = useImageSrc(afterImage?.imagePath)
+  const [imgError, setImgError] = useState(false)
 
   return (
     <button
@@ -18,16 +21,18 @@ export function FigureCard({ figure, onClick }: FigureCardProps) {
       onClick={onClick}
     >
       <div className="aspect-[9/16] overflow-hidden bg-white">
-        {src ? (
+        {src && !imgError ? (
           <img
             src={src}
             alt={figure.title}
             className="size-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
             loading="lazy"
+            onError={() => setImgError(true)}
           />
         ) : (
-          <div className="flex size-full items-center justify-center text-muted-foreground">
-            无图片
+          <div className="flex size-full flex-col items-center justify-center gap-1.5 bg-muted/30 text-muted-foreground">
+            <ImageOff className="size-6 opacity-40" />
+            <span className="text-xs">{src ? "加载失败" : "无图片"}</span>
           </div>
         )}
       </div>

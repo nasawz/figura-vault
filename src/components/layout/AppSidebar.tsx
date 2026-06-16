@@ -33,6 +33,7 @@ interface AppSidebarProps {
   onViewModeChange: (mode: ViewMode) => void
   onAlbumSelect: (albumId: string | null) => void
   onTagSelect: (tagId: string | null) => void
+  onSettingsClick: () => void
 }
 
 export function AppSidebar({
@@ -45,6 +46,7 @@ export function AppSidebar({
   onViewModeChange,
   onAlbumSelect,
   onTagSelect,
+  onSettingsClick,
 }: AppSidebarProps) {
   const totalCount = figures.length
   const favCount = figures.filter((f) => f.isFavorite).length
@@ -156,7 +158,7 @@ export function AppSidebar({
       <SidebarFooter className="px-4 pb-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton>
+            <SidebarMenuButton onClick={onSettingsClick}>
               <Settings className="size-4" />
               <span>设置</span>
             </SidebarMenuButton>

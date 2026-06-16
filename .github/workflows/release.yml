@@ -76,7 +76,7 @@ jobs:
           fi
 
           mkdir -p "$RUNNER_TEMP/apple-api"
-          printf "%s" "$APPLE_API_KEY_PRIVATE" > "$RUNNER_TEMP/apple-api/AuthKey_${APPLE_API_KEY}.p8"
+          printf "%b\n" "$APPLE_API_KEY_PRIVATE" > "$RUNNER_TEMP/apple-api/AuthKey_${APPLE_API_KEY}.p8"
           echo "APPLE_API_KEY_PATH=$RUNNER_TEMP/apple-api/AuthKey_${APPLE_API_KEY}.p8" >> "$GITHUB_ENV"
 
       - name: Build Tauri app

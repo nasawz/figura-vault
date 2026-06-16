@@ -66,3 +66,21 @@ export function getImageExtension(filePath: string): string {
   const ext = filePath.split(".").pop()?.toLowerCase() ?? ""
   return ext
 }
+
+export async function copySingleImage(
+  figureId: string,
+  role: string,
+  sourcePath: string,
+  imageId: string,
+): Promise<string> {
+  return invoke<string>("copy_single_image", {
+    figureId,
+    role,
+    sourcePath,
+    imageId,
+  })
+}
+
+export async function deleteAppImage(relativePath: string): Promise<void> {
+  await invoke("delete_app_image", { relativePath })
+}

@@ -191,6 +191,43 @@ export async function createFigure(figure: {
   }
 }
 
+export async function updateFigure(input: {
+  id: string
+  title: string
+  description?: string
+  albumId?: string
+  isFavorite: boolean
+  tagIds: string[]
+  images: { id: string; imagePath: string; imageRole: string; sortOrder: number }[]
+}): Promise<void> {
+  await execute(
+    `UPDATE figures SET title = $1, description = $2, album_id = $3, is_favorite = $4, updated_at = datetime('now') WHERE id = $5`,
+    [
+      input.title,
+      input.description ?? null,
+      input.albumId ?? null,
+      input.isFavorite ? 1 : 0,
+      input.id,
+    ]
+  )
+
+  await execute("DELETE FROM figure_tags WHERE figure_id = $1", [input.id])
+  for (const tagId of input.tagIds) {
+    await execute(
+      "INSERT INTO figure_tags (figure_id, tag_id) VALUES ($1, $2)",
+      [input.id, tagId]
+    )
+  }
+
+  await execute("DELETE FROM figure_images WHERE figure_id = $1", [input.id])
+  for (const img of input.images) {
+    await execute(
+      "INSERT INTO figure_images (id, figure_id, image_path, image_role, sort_order) VALUES ($1, $2, $3, $4, $5)",
+      [img.id, input.id, img.imagePath, img.imageRole, img.sortOrder]
+    )
+  }
+}
+
 export async function deleteFigure(id: string): Promise<void> {
   await execute("DELETE FROM figures WHERE id = $1", [id])
 }

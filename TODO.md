@@ -319,7 +319,7 @@
 
 ### 验收
 
-- [ ] P6.5-AC 确认：点击卡片进入详情页、返回按钮回到收藏墙、9:16 布局正确、宽窄屏不溢出、构建通过
+- [x] P6.5-AC 确认：点击卡片进入详情页、返回按钮回到收藏墙、9:16 布局正确、宽窄屏不溢出、构建通过
 
 ---
 
@@ -357,6 +357,43 @@
 ### 验收
 
 - [x] P7-AC 确认：可擦除露出 Before 图、画笔大小可调、重置正常、鼠标和触控都可用、单图项不显示
+
+---
+
+## Phase 7.5：收藏项编辑功能
+
+> 目标：支持编辑收藏项的信息（标题/描述/相册/标签/星标）与图片（替换 AI 图、添加/替换/移除原图）。
+
+### 7.5.1 数据层
+
+- [x] P7.5-1 Rust 端新增 `copy_single_image` command（复制单张图片到 `images/{figureId}/{role}-{imageId}.{ext}`）
+- [x] P7.5-2 Rust 端新增 `delete_app_image` command（删除 AppData 内指定图片文件）
+- [x] P7.5-3 `src/lib/file.ts` 新增 `copySingleImage` / `deleteAppImage` TS wrapper
+- [x] P7.5-4 `src/lib/figure.ts` 新增 `updateFigure`（更新 figures 字段 + 重建 figure_tags + 重建 figure_images）
+
+### 7.5.2 表单重构
+
+- [x] P7.5-5 新增 `FigureFormDialog.tsx`，支持 `mode: "create" | "edit"` 双模式
+- [x] P7.5-6 编辑模式预填当前 figure 信息（标题/描述/相册/标签/星标/图片）
+- [x] P7.5-7 图片区域支持：保留现有图片（existing）、选择新图片（local）、移除图片
+- [x] P7.5-8 编辑模式保留 AI 识别填充能力（只对新选中的 After 图片生效）
+- [x] P7.5-9 `ImportFigureDialog.tsx` 改为 `FigureFormDialog` 的 create 模式薄包装
+
+### 7.5.3 图片替换与安全
+
+- [x] P7.5-10 保存流程：先复制新图片到新文件名 → DB 更新 → 成功后清理旧图片
+- [x] P7.5-11 DB 失败时回滚：删除新复制图片，原记录与原图片不受影响
+- [x] P7.5-12 旧文件清理失败只 warning 日志，不回滚 DB
+
+### 7.5.4 集成
+
+- [x] P7.5-13 `FigureDetailPage` 右侧栏新增"编辑"按钮
+- [x] P7.5-14 `App.tsx` 新增 `isEditOpen` 状态，编辑成功后 `loadData()` 刷新 + toast
+- [x] P7.5-15 编辑后保持 `activeFigureId` 不变，详情页显示更新后的数据
+
+### 验收
+
+- [ ] P7.5-AC 确认：编辑预填正确、修改信息/替换图片/添加移除 Before 都正常、保存后详情与收藏墙同步、构建通过
 
 ---
 

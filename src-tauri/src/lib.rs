@@ -95,6 +95,49 @@ fn cleanup_figure_images(app: tauri::AppHandle, figure_id: String) -> Result<(),
 }
 
 #[tauri::command]
+fn copy_single_image(
+    app: tauri::AppHandle,
+    figure_id: String,
+    role: String,
+    source_path: String,
+    image_id: String,
+) -> Result<String, String> {
+    let ext = allowed_extension(&source_path)
+        .ok_or("不支持的图片格式，仅允许 png/jpg/jpeg/webp")?;
+
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("无法获取 AppData 目录: {e}"))?;
+
+    let images_dir = app_data.join("images").join(&figure_id);
+    fs::create_dir_all(&images_dir)
+        .map_err(|e| format!("创建图片目录失败: {e}"))?;
+
+    let filename = format!("{role}-{image_id}.{ext}");
+    let dest = images_dir.join(&filename);
+    fs::copy(&source_path, &dest)
+        .map_err(|e| format!("复制图片失败: {e}"))?;
+
+    Ok(format!("images/{figure_id}/{filename}"))
+}
+
+#[tauri::command]
+fn delete_app_image(app: tauri::AppHandle, relative_path: String) -> Result<(), String> {
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("无法获取 AppData 目录: {e}"))?;
+
+    let full_path = app_data.join(&relative_path);
+    if full_path.exists() {
+        fs::remove_file(&full_path)
+            .map_err(|e| format!("删除图片失败: {e}"))?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
 fn get_app_data_dir(app: tauri::AppHandle) -> Result<String, String> {
     let dir = app
         .path()
@@ -451,6 +494,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             import_figure_images,
             cleanup_figure_images,
+            copy_single_image,
+            delete_app_image,
             get_app_data_dir,
             analyze_figure_image,
         ])

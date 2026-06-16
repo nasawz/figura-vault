@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   Star,
   Trash2,
+  Pencil,
   Layers,
   ImageOff,
   Loader2,
@@ -30,6 +31,7 @@ interface FigureDetailPageProps {
   onBack: () => void
   onToggleFavorite: (figureId: string) => void
   onDeleteFigure: (figureId: string) => Promise<void>
+  onEditClick: () => void
 }
 
 function SingleImagePreview({
@@ -87,6 +89,7 @@ export function FigureDetailPage({
   onBack,
   onToggleFavorite,
   onDeleteFigure,
+  onEditClick,
 }: FigureDetailPageProps) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -187,6 +190,15 @@ export function FigureDetailPage({
 
             {/* Actions */}
             <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2"
+                onClick={onEditClick}
+              >
+                <Pencil className="size-4" />
+                编辑
+              </Button>
               <Button
                 variant="outline"
                 size="sm"

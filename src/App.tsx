@@ -4,6 +4,7 @@ import { AppLayout } from "@/components/layout/AppLayout"
 import { GalleryPage } from "@/pages/GalleryPage"
 import { FigureDetailPage } from "@/pages/FigureDetailPage"
 import { ImportFigureDialog } from "@/components/figures/ImportFigureDialog"
+import { FigureFormDialog } from "@/components/figures/FigureFormDialog"
 import { Toaster } from "@/components/ui/sonner"
 import type { ViewMode } from "@/pages/GalleryPage"
 import type { FigureItem, Album, Tag } from "@/types/figure"
@@ -26,6 +27,7 @@ function App() {
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null)
   const [activeFigureId, setActiveFigureId] = useState<string | null>(null)
   const [isImportOpen, setIsImportOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
 
   const loadData = useCallback(async () => {
     try {
@@ -80,6 +82,22 @@ function App() {
     setActiveFigureId(null)
     setFigures((prev) => prev.filter((f) => f.id !== figureId))
     toast.success("收藏项已删除")
+  }, [])
+
+  const handleEditSaved = useCallback(async () => {
+    toast.success("收藏项已更新")
+    try {
+      const [figuresData, albumsData, tagsData] = await Promise.all([
+        getAllFigures(),
+        getAllAlbums(),
+        getAllTags(),
+      ])
+      setFigures(figuresData)
+      setAlbums(albumsData)
+      setTags(tagsData)
+    } catch (e) {
+      console.error("Failed to reload data after edit:", e)
+    }
   }, [])
 
   const activeFigure = useMemo(
@@ -149,6 +167,7 @@ function App() {
             onBack={() => setActiveFigureId(null)}
             onToggleFavorite={toggleFavorite}
             onDeleteFigure={handleDeleteFigure}
+            onEditClick={() => setIsEditOpen(true)}
           />
         ) : (
           <GalleryPage
@@ -170,6 +189,18 @@ function App() {
           tags={tags}
           onImported={loadData}
         />
+
+        {activeFigure && (
+          <FigureFormDialog
+            mode="edit"
+            open={isEditOpen}
+            onOpenChange={setIsEditOpen}
+            albums={albums}
+            tags={tags}
+            onSaved={handleEditSaved}
+            figure={activeFigure}
+          />
+        )}
       </AppLayout>
       <Toaster />
     </>

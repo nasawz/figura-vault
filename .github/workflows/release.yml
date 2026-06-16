@@ -13,8 +13,6 @@ jobs:
         include:
           - target: aarch64-apple-darwin
             arch: aarch64
-          - target: x86_64-apple-darwin
-            arch: x86_64
 
     runs-on: macos-latest
 
@@ -39,7 +37,52 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install
 
+      - name: Import Apple Developer ID certificate
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          if [ -z "$APPLE_CERTIFICATE" ] || [ -z "$KEYCHAIN_PASSWORD" ]; then
+            echo "Missing one of APPLE_CERTIFICATE, KEYCHAIN_PASSWORD."
+            exit 1
+          fi
+
+          echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+
+          CERT_ID="$(security find-identity -v -p codesigning build.keychain | awk -F '"' '/Developer ID Application/ { print $2; exit }')"
+          if [ -z "$CERT_ID" ]; then
+            echo "No Developer ID Application signing identity found in build.keychain."
+            security find-identity -v -p codesigning build.keychain
+            exit 1
+          fi
+          echo "APPLE_SIGNING_IDENTITY=$CERT_ID" >> "$GITHUB_ENV"
+
+      - name: Prepare Apple notarization key
+        env:
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_PRIVATE: ${{ secrets.APPLE_API_KEY_PRIVATE }}
+        run: |
+          if [ -z "$APPLE_API_ISSUER" ] || [ -z "$APPLE_API_KEY" ] || [ -z "$APPLE_API_KEY_PRIVATE" ]; then
+            echo "Missing one of APPLE_API_ISSUER, APPLE_API_KEY, APPLE_API_KEY_PRIVATE."
+            exit 1
+          fi
+
+          mkdir -p "$RUNNER_TEMP/apple-api"
+          printf "%s" "$APPLE_API_KEY_PRIVATE" > "$RUNNER_TEMP/apple-api/AuthKey_${APPLE_API_KEY}.p8"
+          echo "APPLE_API_KEY_PATH=$RUNNER_TEMP/apple-api/AuthKey_${APPLE_API_KEY}.p8" >> "$GITHUB_ENV"
+
       - name: Build Tauri app
+        env:
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
         run: pnpm tauri build --target ${{ matrix.target }}
 
       - name: Upload .dmg artifact

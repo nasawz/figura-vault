@@ -23,12 +23,9 @@ Figura Vault 是一款专为 AI 生成手办图片设计的本地收藏管理工
 
 从 [GitHub Releases](https://github.com/nasawz/figura-vault/releases) 下载最新版本的 `.dmg` 文件：
 
-- **Apple Silicon (M1/M2/M3/M4)** — 下载 `aarch64.dmg`
-- **Intel Mac** — 下载 `x64.dmg`
+- **Apple Silicon (M1/M2/M3/M4)** — 下载 `.dmg` 文件
 
 打开 `.dmg` 文件，将 Figura Vault 拖入 Applications 文件夹即可。
-
-> **注意**：应用未经 Apple 签名，首次打开时 macOS 可能提示"无法打开"。请前往「系统设置 > 隐私与安全性」，找到 Figura Vault 并点击「仍要打开」。
 
 ## 本地开发
 
@@ -56,6 +53,17 @@ pnpm tauri build
 ```
 
 产物位于 `src-tauri/target/release/bundle/`。
+
+### CI 发布配置
+
+GitHub Actions 发布 macOS DMG 时会执行 Developer ID 签名和 Apple notarization。仓库需要配置以下 Secrets：
+
+- `APPLE_CERTIFICATE`：Developer ID Application `.p12` 证书的 base64 内容，可用 `openssl base64 -A -in certificate.p12 -out certificate-base64.txt` 生成
+- `APPLE_CERTIFICATE_PASSWORD`：导出 `.p12` 时设置的密码；如果导出时密码留空，可以不配置
+- `KEYCHAIN_PASSWORD`：CI 临时 keychain 密码
+- `APPLE_API_ISSUER`：App Store Connect API Issuer ID
+- `APPLE_API_KEY`：App Store Connect API Key ID
+- `APPLE_API_KEY_PRIVATE`：App Store Connect API `.p8` 私钥内容
 
 ## 技术栈
 

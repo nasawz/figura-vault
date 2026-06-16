@@ -1,6 +1,6 @@
 [package]
 name = "figura-vault"
-version = "0.1.0"
+version = "0.1.1"
 description = "AI Figure Image Collection Manager — Desktop App"
 authors = ["nasawz"]
 license = "MIT"

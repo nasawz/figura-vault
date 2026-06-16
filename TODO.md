@@ -251,7 +251,7 @@
 
 ### 验收
 
-- [ ] P5-AC 确认：详情展示真实数据、星标可切换并持久化、删除前有二次确认、删除后收藏墙更新、图片文件被清理、重启后不再出现
+- [x] P5-AC 确认：详情展示真实数据、星标可切换并持久化、删除前有二次确认、删除后收藏墙更新、图片文件被清理、重启后不再出现
 
 ---
 
@@ -261,31 +261,65 @@
 
 ### 6.1 滑杆组件开发
 
-- [ ] P6-1 创建 `BeforeAfterSlider.tsx`，接收 props：`beforeSrc`、`afterSrc`
-- [ ] P6-2 实现基础布局：底层 Before 图 + 上层 After 图（通过 `clip-path` 或宽度裁切叠加）
-- [ ] P6-3 实现滑杆 UI：中间竖线 + 拖动手柄
-- [ ] P6-4 实现鼠标拖动：mousedown → mousemove → mouseup 控制滑杆位置
-- [ ] P6-5 实现触控拖动：touchstart → touchmove → touchend
-- [ ] P6-6 默认滑杆位置 50%
-- [ ] P6-7 显示 Before / After 文字标签（左右两侧）
-- [ ] P6-8 处理图片加载状态（loading 占位）
+- [x] P6-1 创建 `BeforeAfterSlider.tsx`，接收 props：`beforeSrc`、`afterSrc`
+- [x] P6-2 实现基础布局：底层 Before 图 + 上层 After 图（通过 `clip-path` 裁切叠加）
+- [x] P6-3 实现滑杆 UI：中间竖线 + 拖动手柄
+- [x] P6-4 实现 Pointer Events 统一鼠标/触控/触控笔拖动（pointerdown → pointermove → pointerup）
+- [x] P6-5 （合并到 P6-4）触控拖动通过 Pointer Events 统一支持
+- [x] P6-6 默认滑杆位置 50%
+- [x] P6-7 显示 Before / After 文字标签（左右两侧）
+- [x] P6-8 处理图片加载状态（loading 占位 + 错误占位）
 
 ### 6.2 集成到详情弹窗
 
-- [ ] P6-9 创建 `FigureComparePanel.tsx`：包装 Tabs（滑杆对比 / 橡皮擦对比 / 原图 / AI 图）
-- [ ] P6-10 在"滑杆对比" Tab 中渲染 BeforeAfterSlider
-- [ ] P6-11 在"原图" Tab 中渲染 Before 图单独查看
-- [ ] P6-12 在"AI 图" Tab 中渲染 After 图单独查看
-- [ ] P6-13 FigureDetailDialog 中：双图收藏项显示 FigureComparePanel，单图只显示 After 图
+- [x] P6-9 创建 `FigureComparePanel.tsx`：包装 Tabs（滑杆对比 / 橡皮擦对比 / 原图 / AI 图）
+- [x] P6-10 在"滑杆对比" Tab 中渲染 BeforeAfterSlider
+- [x] P6-11 在"原图" Tab 中渲染 Before 图单独查看
+- [x] P6-12 在"AI 图" Tab 中渲染 After 图单独查看
+- [x] P6-13 FigureDetailDialog 中：双图收藏项显示 FigureComparePanel，单图只显示 After 图
 
 ### 6.3 响应式与边界处理
 
-- [ ] P6-14 滑杆组件适配不同容器宽度
-- [ ] P6-15 处理 Before/After 图片比例不一致时的 `object-contain` 显示
+- [x] P6-14 滑杆组件适配不同容器宽度
+- [x] P6-15 处理 Before/After 图片比例不一致时的 `object-contain` 显示
 
 ### 验收
 
-- [ ] P6-AC 确认：双图项可滑杆对比、拖动流畅、标签正确、单图项不显示滑杆、不同窗口宽度布局正常
+- [x] P6-AC 确认：双图项可滑杆对比、拖动流畅、标签正确、单图项不显示滑杆、不同窗口宽度布局正常
+
+---
+
+## Phase 6.5：详情页工作台改造（9:16 竖图）
+
+> 目标：把 Dialog 弹窗详情改为 App 内独立详情页，中间 9:16 竖向图片工作区 + 右侧功能栏。
+
+### 6.5.1 详情页组件
+
+- [x] P6.5-1 创建 `src/pages/FigureDetailPage.tsx`，布局：中间 9:16 图片工作区 + 右侧固定功能栏
+- [x] P6.5-2 双图收藏渲染 `FigureComparePanel`，单图渲染 9:16 `object-contain` 大图
+- [x] P6.5-3 右侧栏包含返回按钮、标题、B/A 标识、描述、相册、标签、收藏/删除按钮
+- [x] P6.5-4 删除继续使用 `AlertDialog` 二次确认
+
+### 6.5.2 页面切换
+
+- [x] P6.5-5 `App.tsx` 用 `activeFigureId` 替换 `selectedFigure`，卡片点击进入详情页
+- [x] P6.5-6 主内容区根据 `activeFigure` 渲染收藏墙或详情页
+- [x] P6.5-7 返回按钮清空 `activeFigureId`，回到原筛选状态
+- [x] P6.5-8 删除成功后清空 `activeFigureId`，返回收藏墙并刷新
+
+### 6.5.3 比例适配
+
+- [x] P6.5-9 `BeforeAfterSlider` / `EraserReveal` / `FigureComparePanel` 容器从 `aspect-[4/3]` 改为 `aspect-[9/16]`
+- [x] P6.5-10 图片舞台宽度 `max-w-md`，高度自适应，不让右侧栏挤压主体
+
+### 6.5.4 响应式
+
+- [x] P6.5-11 宽屏（≥lg）右侧栏固定 w-64/w-72；窄屏时工具栏下移到图片区下方（`flex-col` / `flex-row`）
+- [x] P6.5-12 移除 `FigureDetailDialog` 在 `App.tsx` 中的引用（文件保留备用）
+
+### 验收
+
+- [ ] P6.5-AC 确认：点击卡片进入详情页、返回按钮回到收藏墙、9:16 布局正确、宽窄屏不溢出、构建通过
 
 ---
 
@@ -295,34 +329,34 @@
 
 ### 7.1 橡皮擦组件开发
 
-- [ ] P7-1 创建 `EraserReveal.tsx`，接收 props：`beforeSrc`、`afterSrc`
-- [ ] P7-2 实现底层：`<img>` 展示 Before 图
-- [ ] P7-3 实现上层：`<canvas>` 绘制 After 图
-- [ ] P7-4 实现 Canvas 自适应容器尺寸（监听 resize）
-- [ ] P7-5 处理设备像素比 DPR（canvas 实际像素 = 显示像素 × DPR，防止高清屏模糊/偏移）
-- [ ] P7-6 实现鼠标擦除：mousedown 开始 → mousemove 擦除 → mouseup 结束
-- [ ] P7-7 实现触控擦除：touchstart → touchmove → touchend
-- [ ] P7-8 擦除使用 `globalCompositeOperation = 'destination-out'` 清除 canvas 像素
+- [x] P7-1 创建 `EraserReveal.tsx`，接收 props：`beforeSrc`、`afterSrc`、`beforeLabel`、`afterLabel`
+- [x] P7-2 实现底层：`<img>` 展示 Before 图（`object-contain`，棋盘格背景）
+- [x] P7-3 实现上层：`<canvas>` 绘制 After 图（`object-contain` 对齐）
+- [x] P7-4 实现 Canvas 自适应容器尺寸（`ResizeObserver` 监听容器变化后重绘）
+- [x] P7-5 处理设备像素比 DPR（canvas 实际像素 = 显示像素 × DPR，防止高清屏模糊/偏移）
+- [x] P7-6 实现 Pointer Events 统一擦除（pointerdown → pointermove → pointerup/pointercancel）
+- [x] P7-7 （合并到 P7-6）触控擦除通过 Pointer Events + `setPointerCapture` + `touch-action: none` 统一支持
+- [x] P7-8 擦除使用 `globalCompositeOperation = 'destination-out'` + 圆形笔刷 + 线段插值
 
 ### 7.2 交互控制
 
-- [ ] P7-9 实现画笔大小调整（Slider 控件，默认 30px，范围 10-100px）
-- [ ] P7-10 实现重置按钮（重新绘制完整 After 图到 canvas）
-- [ ] P7-11 画笔大小 UI 放在组件底部或侧面工具栏
+- [x] P7-9 实现画笔大小调整（Slider 控件，默认 30px，范围 10-100px，步进 5px）
+- [x] P7-10 实现重置按钮（重新绘制完整 After 图到 canvas）
+- [x] P7-11 画笔大小与重置按钮放在画布下方，紧凑布局
 
 ### 7.3 集成到详情弹窗
 
-- [ ] P7-12 在 FigureComparePanel 的"橡皮擦对比" Tab 中渲染 EraserReveal
-- [ ] P7-13 切换 Tab 时重置 canvas 状态（避免切走再切回时状态混乱）
+- [x] P7-12 在 FigureComparePanel 的"橡皮擦对比" Tab 中渲染 EraserReveal
+- [x] P7-13 切换 Tab 时通过受控 Tabs + `key` 重置 canvas 状态
 
 ### 7.4 边界处理
 
-- [ ] P7-14 处理图片加载完成后再初始化 canvas（防止空白绘制）
-- [ ] P7-15 处理窗口 resize 时重新绘制 canvas
+- [x] P7-14 处理图片加载完成后再初始化 canvas（loading/error 状态管理）
+- [x] P7-15 处理窗口 resize 时 `ResizeObserver` 触发重新绘制 canvas
 
 ### 验收
 
-- [ ] P7-AC 确认：可擦除露出 Before 图、画笔大小可调、重置正常、鼠标和触控都可用、单图项不显示
+- [x] P7-AC 确认：可擦除露出 Before 图、画笔大小可调、重置正常、鼠标和触控都可用、单图项不显示
 
 ---
 

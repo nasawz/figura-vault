@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from "react"
 import { toast } from "sonner"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { GalleryPage } from "@/pages/GalleryPage"
-import { FigureDetailDialog } from "@/components/figures/FigureDetailDialog"
+import { FigureDetailPage } from "@/pages/FigureDetailPage"
 import { ImportFigureDialog } from "@/components/figures/ImportFigureDialog"
 import { Toaster } from "@/components/ui/sonner"
 import type { ViewMode } from "@/pages/GalleryPage"
@@ -24,7 +24,7 @@ function App() {
   const [viewMode, setViewMode] = useState<ViewMode>("all")
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null)
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null)
-  const [selectedFigure, setSelectedFigure] = useState<FigureItem | null>(null)
+  const [activeFigureId, setActiveFigureId] = useState<string | null>(null)
   const [isImportOpen, setIsImportOpen] = useState(false)
 
   const loadData = useCallback(async () => {
@@ -60,9 +60,6 @@ function App() {
           f.id === figureId ? { ...f, isFavorite: newState } : f
         )
       )
-      setSelectedFigure((prev) =>
-        prev?.id === figureId ? { ...prev, isFavorite: newState } : prev
-      )
     } catch (e) {
       console.error("Failed to toggle favorite:", e)
     }
@@ -80,10 +77,15 @@ function App() {
       })
     }
 
-    setSelectedFigure(null)
+    setActiveFigureId(null)
     setFigures((prev) => prev.filter((f) => f.id !== figureId))
     toast.success("收藏项已删除")
   }, [])
+
+  const activeFigure = useMemo(
+    () => (activeFigureId ? figures.find((f) => f.id === activeFigureId) : null) ?? null,
+    [activeFigureId, figures],
+  )
 
   const topBarTitle = useMemo(() => {
     if (viewMode === "favorites") return "星标收藏"
@@ -141,24 +143,25 @@ function App() {
         onTagSelect={setSelectedTagId}
         onImportClick={() => setIsImportOpen(true)}
       >
-        <GalleryPage
-          figures={figures}
-          searchQuery={searchQuery}
-          viewMode={viewMode}
-          selectedAlbumId={selectedAlbumId}
-          selectedTagId={selectedTagId}
-          onSearchChange={setSearchQuery}
-          onOpenFigure={setSelectedFigure}
-          onImportClick={() => setIsImportOpen(true)}
-        />
-
-        <FigureDetailDialog
-          figure={selectedFigure ? figures.find((f) => f.id === selectedFigure.id) ?? selectedFigure : null}
-          open={selectedFigure !== null}
-          onOpenChange={(open) => { if (!open) setSelectedFigure(null) }}
-          onToggleFavorite={toggleFavorite}
-          onDeleteFigure={handleDeleteFigure}
-        />
+        {activeFigure ? (
+          <FigureDetailPage
+            figure={activeFigure}
+            onBack={() => setActiveFigureId(null)}
+            onToggleFavorite={toggleFavorite}
+            onDeleteFigure={handleDeleteFigure}
+          />
+        ) : (
+          <GalleryPage
+            figures={figures}
+            searchQuery={searchQuery}
+            viewMode={viewMode}
+            selectedAlbumId={selectedAlbumId}
+            selectedTagId={selectedTagId}
+            onSearchChange={setSearchQuery}
+            onOpenFigure={(f) => setActiveFigureId(f.id)}
+            onImportClick={() => setIsImportOpen(true)}
+          />
+        )}
 
         <ImportFigureDialog
           open={isImportOpen}

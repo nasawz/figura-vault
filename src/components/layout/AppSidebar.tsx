@@ -58,7 +58,7 @@ export function AppSidebar({
   }
 
   const isAllActive = viewMode === "all" && !selectedAlbumId && !selectedTagId
-  const isFavActive = viewMode === "favorites" && !selectedAlbumId && !selectedTagId
+  const isFavActive = viewMode === "favorites"
 
   return (
     <Sidebar collapsible="offcanvas">
@@ -90,9 +90,7 @@ export function AppSidebar({
                 <SidebarMenuButton
                   isActive={isFavActive}
                   onClick={() => {
-                    onViewModeChange("favorites")
-                    onAlbumSelect(null)
-                    onTagSelect(null)
+                    onViewModeChange(viewMode === "favorites" ? "all" : "favorites")
                   }}
                 >
                   <Star className="size-4" />
@@ -115,9 +113,7 @@ export function AppSidebar({
                   <SidebarMenuButton
                     isActive={selectedAlbumId === album.id}
                     onClick={() => {
-                      onViewModeChange("all")
                       onAlbumSelect(selectedAlbumId === album.id ? null : album.id)
-                      onTagSelect(null)
                     }}
                   >
                     <FolderOpen className="size-4" />
@@ -141,8 +137,6 @@ export function AppSidebar({
                   <SidebarMenuButton
                     isActive={selectedTagId === tag.id}
                     onClick={() => {
-                      onViewModeChange("all")
-                      onAlbumSelect(null)
                       onTagSelect(selectedTagId === tag.id ? null : tag.id)
                     }}
                   >

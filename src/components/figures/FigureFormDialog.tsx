@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { ImagePlus, X, Loader2, Sparkles } from "lucide-react"
+import { ImagePlus, X, Loader2, Sparkles, Plus } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
@@ -33,6 +32,9 @@ import {
 import { analyzeImageWithOllama } from "@/lib/ollama"
 import { convertFileSrc } from "@tauri-apps/api/core"
 import { useImageSrc } from "@/hooks/use-image-src"
+import { AlbumFormDialog } from "./AlbumFormDialog"
+import { TagInput } from "./TagInput"
+import { getAllAlbums } from "@/lib/album"
 
 type FormMode = "create" | "edit"
 
@@ -77,6 +79,12 @@ export function FigureFormDialog({
   const [analyzing, setAnalyzing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [analysisLogs, setAnalysisLogs] = useState<string[]>([])
+  const [localAlbums, setLocalAlbums] = useState<Album[]>(albums)
+  const [isAlbumFormOpen, setIsAlbumFormOpen] = useState(false)
+
+  useEffect(() => {
+    setLocalAlbums(albums)
+  }, [albums])
 
   // Prefill when editing
   useEffect(() => {
@@ -173,12 +181,14 @@ export function FigureFormDialog({
     onOpenChange(isOpen)
   }
 
-  function toggleTag(tag: Tag) {
-    setSelectedTags((prev) =>
-      prev.some((t) => t.id === tag.id)
-        ? prev.filter((t) => t.id !== tag.id)
-        : [...prev, tag]
-    )
+  async function handleAlbumCreated(newAlbumId: string) {
+    setAlbumId(newAlbumId)
+    try {
+      const refreshed = await getAllAlbums()
+      setLocalAlbums(refreshed)
+    } catch {
+      // best-effort
+    }
   }
 
   async function handlePickAfter() {
@@ -517,52 +527,39 @@ export function FigureFormDialog({
           {/* 相册 */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium">相册</label>
-            <Select value={albumId} onValueChange={(v) => setAlbumId(v ?? "")}>
-              <SelectTrigger>
-                <SelectValue placeholder="选择相册（可选）" />
-              </SelectTrigger>
-              <SelectContent>
-                {albums.map((album) => (
-                  <SelectItem key={album.id} value={album.id}>
-                    {album.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-1.5">
+              <Select value={albumId} onValueChange={(v) => setAlbumId(v ?? "")}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="选择相册（可选）" />
+                </SelectTrigger>
+                <SelectContent>
+                  {localAlbums.map((album) => (
+                    <SelectItem key={album.id} value={album.id}>
+                      {album.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="size-8 shrink-0"
+                onClick={() => setIsAlbumFormOpen(true)}
+              >
+                <Plus className="size-4" />
+              </Button>
+            </div>
           </div>
 
           {/* 标签 */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium">标签</label>
-            <div className="flex flex-wrap gap-1.5">
-              {tags.map((tag) => {
-                const isSelected = selectedTags.some((t) => t.id === tag.id)
-                return (
-                  <Badge
-                    key={tag.id}
-                    variant={isSelected ? "default" : "outline"}
-                    className="cursor-pointer select-none"
-                    onClick={() => toggleTag(tag)}
-                  >
-                    {tag.name}
-                    {isSelected && <X className="ml-1 size-3" />}
-                  </Badge>
-                )
-              })}
-              {selectedTags
-                .filter((st) => !tags.some((t) => t.id === st.id))
-                .map((tag) => (
-                  <Badge
-                    key={tag.id}
-                    variant="default"
-                    className="cursor-pointer select-none border-dashed"
-                    onClick={() => toggleTag(tag)}
-                  >
-                    {tag.name}
-                    <X className="ml-1 size-3" />
-                  </Badge>
-                ))}
-            </div>
+            <TagInput
+              allTags={tags}
+              selectedTags={selectedTags}
+              onChange={setSelectedTags}
+            />
           </div>
 
           {/* 星标 */}
@@ -592,6 +589,12 @@ export function FigureFormDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <AlbumFormDialog
+        open={isAlbumFormOpen}
+        onOpenChange={setIsAlbumFormOpen}
+        onCreated={handleAlbumCreated}
+      />
     </Dialog>
   )
 }

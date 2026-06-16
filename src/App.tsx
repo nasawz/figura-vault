@@ -6,7 +6,7 @@ import { FigureDetailPage } from "@/pages/FigureDetailPage"
 import { ImportFigureDialog } from "@/components/figures/ImportFigureDialog"
 import { FigureFormDialog } from "@/components/figures/FigureFormDialog"
 import { Toaster } from "@/components/ui/sonner"
-import type { ViewMode } from "@/pages/GalleryPage"
+import type { ViewMode, SortMode } from "@/pages/GalleryPage"
 import type { FigureItem, Album, Tag } from "@/types/figure"
 import { getAllFigures, toggleFavorite as dbToggleFavorite, deleteFigure } from "@/lib/figure"
 import { cleanupFigureImages } from "@/lib/file"
@@ -25,6 +25,7 @@ function App() {
   const [viewMode, setViewMode] = useState<ViewMode>("all")
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null)
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null)
+  const [sortMode, setSortMode] = useState<SortMode>("newest")
   const [activeFigureId, setActiveFigureId] = useState<string | null>(null)
   const [isImportOpen, setIsImportOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -105,6 +106,31 @@ function App() {
     [activeFigureId, figures],
   )
 
+  const hasActiveFilters = viewMode === "favorites" || !!selectedAlbumId || !!selectedTagId || !!searchQuery.trim()
+
+  const clearFilters = useCallback(() => {
+    setViewMode("all")
+    setSelectedAlbumId(null)
+    setSelectedTagId(null)
+    setSearchQuery("")
+    setSortMode("newest")
+  }, [])
+
+  const activeFilterSummary = useMemo(() => {
+    const parts: string[] = []
+    if (viewMode === "favorites") parts.push("星标")
+    if (selectedAlbumId) {
+      const album = albums.find((a) => a.id === selectedAlbumId)
+      if (album) parts.push(`相册「${album.name}」`)
+    }
+    if (selectedTagId) {
+      const tag = tags.find((t) => t.id === selectedTagId)
+      if (tag) parts.push(`标签「${tag.name}」`)
+    }
+    if (searchQuery.trim()) parts.push(`搜索「${searchQuery.trim()}」`)
+    return parts.length > 0 ? parts.join(" + ") : null
+  }, [viewMode, selectedAlbumId, selectedTagId, searchQuery, albums, tags])
+
   const topBarTitle = useMemo(() => {
     if (viewMode === "favorites") return "星标收藏"
     if (selectedAlbumId) {
@@ -176,6 +202,11 @@ function App() {
             viewMode={viewMode}
             selectedAlbumId={selectedAlbumId}
             selectedTagId={selectedTagId}
+            sortMode={sortMode}
+            onSortModeChange={setSortMode}
+            activeFilterSummary={activeFilterSummary}
+            hasActiveFilters={hasActiveFilters}
+            onClearFilters={clearFilters}
             onSearchChange={setSearchQuery}
             onOpenFigure={(f) => setActiveFigureId(f.id)}
             onImportClick={() => setIsImportOpen(true)}
